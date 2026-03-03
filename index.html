@@ -538,7 +538,7 @@
   </div>
 
 <script>
-(() => {
+(async () => {
   // --- DOM
   const ampelBlock = document.getElementById('ampelBlock');
   const originalParent = ampelBlock.parentElement;
@@ -649,44 +649,42 @@
   let sirenOsc = null, sirenGain = null, sirenLfo = null, sirenLfoGain = null;
   let sirenRampStartMs = 0;
 
-  const sentences = {
-    good: [
-      "Mega! Ihr wart richtig konzentriert – genau so macht Lernen Spaß.",
-      "Starkes Teamwork: ruhig, fokussiert und super aufmerksam!",
-      "Heute wart ihr Vorbilder – top Klassenklima!",
-      "Sehr gut! So kommt man schnell und entspannt voran.",
-      "Klasse Leistung – ihr habt euch gegenseitig echt geholfen.",
-      "Wow, das war richtig professionell: ruhig und effektiv.",
-      "Das war Lernmodus auf höchstem Niveau – weiter so!",
-      "Super: Ihr habt gezeigt, wie gut ihr euch steuern könnt.",
-      "Richtig gut! So schafft man viel in kurzer Zeit.",
-      "Spitze! Ihr habt euch die Ruhe verdient – stark gemacht."
-    ],
-    ok: [
-      "Ganz ordentlich! Mit ein bisschen mehr Ruhe wird’s richtig super.",
-      "Guter Ansatz – wir schaffen gleich noch etwas mehr Fokus.",
-      "Solide! Wenn wir die Rot-Phasen reduzieren, wird’s top.",
-      "Nicht schlecht! Ein kleines Stück leiser und ihr seid im Spitzenbereich.",
-      "Das war okay – jetzt knacken wir gemeinsam das nächste Level!",
-      "Ihr seid auf einem guten Weg. Lasst uns die Konzentration stabil halten.",
-      "Schon gut! Mit kurzen Ruhe-Checks wird’s gleich viel besser.",
-      "Passt – aber da geht noch was. Wir schaffen das zusammen!",
-      "Okay! Jetzt machen wir daraus eine richtig ruhige Arbeitsphase.",
-      "Guter Start – als Klasse könnt ihr das noch ruhiger hinbekommen."
-    ],
-    bad: [
-      "Heute war’s etwas zu laut – aber morgen können wir das drehen!",
-      "Das war herausfordernd. Wir probieren gleich eine neue Strategie – ihr schafft das!",
-      "Nicht ideal, aber kein Problem: Wir üben das gemeinsam Schritt für Schritt.",
-      "Da war viel Energie im Raum – jetzt lenken wir sie in Fokus um.",
-      "Heute war’s turbulent. Nächstes Mal nehmen wir uns kurze Ruhe-Inseln.",
-      "Wir haben Potenzial: Wenn jeder etwas leiser ist, klappt’s richtig gut.",
-      "Das war laut – aber: Wir können lernen, das besser zu steuern.",
-      "Okay, Neustart: leise Stimmen, klare Aufgaben – dann wird’s besser.",
-      "Das war zu unruhig. Wir machen gleich eine kurze Reset-Pause.",
-      "Nicht unser bester Durchgang – aber ihr könnt das deutlich besser!"
-    ]
-  };
+ let sentences = { good: [], ok: [], bad: [] };
+
+async function loadSentences(){
+  try{
+    // Cache-Bust, damit Updates auf GitHub Pages schnell sichtbar sind
+    const res = await fetch(`sentences.json?v=${Date.now()}`, { cache: "no-store" });
+    if(!res.ok) throw new Error("sentences.json not found");
+    const data = await res.json();
+
+    // Defensive: egal wie viele Einträge – wir nehmen Arrays, sonst fallback
+    sentences = {
+      good: Array.isArray(data.good) ? data.good : [],
+      ok:   Array.isArray(data.ok)   ? data.ok   : [],
+      bad:  Array.isArray(data.bad)  ? data.bad  : []
+    };
+  }catch(e){
+    console.warn("Konnte sentences.json nicht laden, nutze Fallback.", e);
+    // Minimaler Fallback, damit es nicht leer ist:
+    sentences = {
+      good: ["Super gemacht!"],
+      ok: ["Guter Versuch – nächstes Mal wird’s noch besser!"],
+      bad: ["Heute war’s laut – morgen schaffen wir’s ruhiger!"]
+    };
+  }
+}
+
+function pickSentence(kind){
+  const arr = sentences[kind] || [];
+  if(arr.length === 0){
+    // Notfall-Fallback, falls JSON leer/kaputt
+    if(kind === "good") return "Super gemacht!";
+    if(kind === "ok") return "Guter Versuch – nächstes Mal wird’s noch besser!";
+    return "Heute war’s laut – morgen schaffen wir’s ruhiger!";
+  }
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -1109,9 +1107,9 @@
   }
 
   function emojiAndTitle(kind){
-    if(kind === "good") return { emoji:"😄👍", title:"Richtig stark!", sentence: pick(sentences.good) };
-    if(kind === "ok") return { emoji:"😐🤷", title:"Ganz okay!", sentence: pick(sentences.ok) };
-    return { emoji:"😞👎", title:"Heute war’s zu laut.", sentence: pick(sentences.bad) };
+    if(kind === "good") return { emoji:"😄👍", title:"Richtig stark!", sentence: pickSentence("good") };
+    if(kind === "ok") return { emoji:"😐🤷", title:"Ganz okay!", sentence: pickSentence("ok") };
+    return { emoji:"😞👎", title:"Heute war’s zu laut.", sentence: pickSentence("bad") };
   }
 
   function drawPieTo(ctx, cx, cy, r, parts){
@@ -1506,6 +1504,7 @@
 
   // init
   loadSettings();
+  await loadSentences();
   syncUI();
   setLive(false);
   setLights("green");
