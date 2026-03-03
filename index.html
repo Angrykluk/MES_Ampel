@@ -143,12 +143,7 @@
       opacity:1;
       transform: translateY(0px) scale(1);
     }
-
-    /* Extra für roten Smiley */
-    #emojiR{
-      transform-origin: 50% 55%;
-      will-change: transform;
-    }
+    #emojiR{ transform-origin: 50% 55%; will-change: transform; }
 
     .readout{ flex:1; min-width: 220px; }
     .big{ font-size:46px; line-height:1; margin:0 0 8px 0; letter-spacing:-.8px; }
@@ -296,12 +291,85 @@
     /* Auswertung */
     .analysisBox{ padding:18px; border-top:1px solid var(--stroke); display:none; }
     .analysisBox.show{ display:block; }
+
     .analysisHead{
       display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;
     }
     .analysisHead h3{ margin:0; font-size:14px; color:var(--text); }
     .analysisMeta{ color:var(--muted); font-size:12px; }
+
+    .analysisGrid{
+      display:grid;
+      grid-template-columns: 1.25fr 0.75fr;
+      gap:14px;
+      align-items:stretch;
+    }
+    @media (max-width: 900px){ .analysisGrid{ grid-template-columns: 1fr; } }
+
     canvas{ width:100%; height:auto; border-radius:14px; border:1px solid var(--stroke); background:#070c1b; }
+
+    .resultCard{
+      border:1px solid var(--stroke);
+      border-radius:14px;
+      background:#0a1227aa;
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      min-height: 100%;
+    }
+    .badge{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--stroke);
+      background: radial-gradient(500px 160px at 30% 0%, #7c5cff22, transparent 60%);
+    }
+    .bigEmoji{
+      font-size:44px;
+      filter: drop-shadow(0 10px 14px rgba(0,0,0,.45));
+      line-height:1;
+    }
+    .badgeText{
+      flex:1;
+      min-width:0;
+    }
+    .badgeText .title{
+      margin:0;
+      font-weight:800;
+      letter-spacing:.2px;
+      font-size:14px;
+    }
+    .badgeText .sub{
+      margin:6px 0 0 0;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+    }
+
+    .summaryText{
+      width:100%;
+      border:1px solid var(--stroke);
+      border-radius:12px;
+      background:#070c1b;
+      color:var(--muted);
+      padding:10px;
+      font-size:12px;
+      line-height:1.35;
+      white-space:pre-wrap;
+      user-select:text;
+    }
+    .copyRow{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .copyHint{ color:var(--muted); font-size:12px; }
     .legend{ margin-top:10px; display:grid; grid-template-columns: 1fr; gap:8px; }
     .legendItem{ display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:12px; color:var(--muted); }
     .swatch{ width:12px; height:12px; border-radius:3px; display:inline-block; margin-right:8px; border:1px solid #ffffff22; }
@@ -418,9 +486,31 @@
           <h3>Auswertung (letzte Session)</h3>
           <div class="analysisMeta" id="analysisMeta">—</div>
         </div>
-        <canvas id="pie" width="900" height="520" aria-label="Tortendiagramm"></canvas>
-        <div class="legend" id="legend"></div>
-        <div class="warnline" id="sirenStats">—</div>
+
+        <div class="analysisGrid">
+          <div>
+            <canvas id="pie" width="900" height="520" aria-label="Tortendiagramm"></canvas>
+            <div class="legend" id="legend"></div>
+            <div class="warnline" id="sirenStats">—</div>
+          </div>
+
+          <div class="resultCard">
+            <div class="badge">
+              <div class="bigEmoji" id="resultEmoji">🙂</div>
+              <div class="badgeText">
+                <p class="title" id="resultTitle">—</p>
+                <p class="sub" id="resultSentence">—</p>
+              </div>
+            </div>
+
+            <div class="copyRow">
+              <button id="btnCopySummary" class="secondary" type="button">📋 Kopieren</button>
+              <span class="copyHint" id="copyHint">—</span>
+            </div>
+
+            <div class="summaryText" id="summaryText" aria-label="Zusammenfassung">—</div>
+          </div>
+        </div>
       </div>
 
       <div class="note">
@@ -526,6 +616,58 @@
   const legend = document.getElementById('legend');
   const sirenStats = document.getElementById('sirenStats');
 
+  const resultEmoji = document.getElementById('resultEmoji');
+  const resultTitle = document.getElementById('resultTitle');
+  const resultSentence = document.getElementById('resultSentence');
+  const summaryTextEl = document.getElementById('summaryText');
+  const btnCopySummary = document.getElementById('btnCopySummary');
+  const copyHint = document.getElementById('copyHint');
+
+  let lastSummaryText = "";
+
+  const sentences = {
+    good: [
+      "Mega! Ihr wart richtig konzentriert – genau so macht Lernen Spaß.",
+      "Starkes Teamwork: ruhig, fokussiert und super aufmerksam!",
+      "Heute wart ihr Vorbilder – top Klassenklima!",
+      "Sehr gut! So kommt man schnell und entspannt voran.",
+      "Klasse Leistung – ihr habt euch gegenseitig echt geholfen.",
+      "Wow, das war richtig professionell: ruhig und effektiv.",
+      "Das war Lernmodus auf höchstem Niveau – weiter so!",
+      "Super: Ihr habt gezeigt, wie gut ihr euch steuern könnt.",
+      "Richtig gut! So schafft man viel in kurzer Zeit.",
+      "Spitze! Ihr habt euch die Ruhe verdient – stark gemacht."
+    ],
+    ok: [
+      "Ganz ordentlich! Mit ein bisschen mehr Ruhe wird’s richtig super.",
+      "Guter Ansatz – wir schaffen gleich noch etwas mehr Fokus.",
+      "Solide! Wenn wir die Rot-Phasen reduzieren, wird’s top.",
+      "Nicht schlecht! Ein kleines Stück leiser und ihr seid im Spitzenbereich.",
+      "Das war okay – jetzt knacken wir gemeinsam das nächste Level!",
+      "Ihr seid auf einem guten Weg. Lasst uns die Konzentration stabil halten.",
+      "Schon gut! Mit kurzen Ruhe-Checks wird’s gleich viel besser.",
+      "Passt – aber da geht noch was. Wir schaffen das zusammen!",
+      "Okay! Jetzt machen wir daraus eine richtig ruhige Arbeitsphase.",
+      "Guter Start – als Klasse könnt ihr das noch ruhiger hinbekommen."
+    ],
+    bad: [
+      "Heute war’s etwas zu laut – aber morgen können wir das drehen!",
+      "Das war herausfordernd. Wir probieren gleich eine neue Strategie – ihr schafft das!",
+      "Nicht ideal, aber kein Problem: Wir üben das gemeinsam Schritt für Schritt.",
+      "Da war viel Energie im Raum – jetzt lenken wir sie in Fokus um.",
+      "Heute war’s turbulent. Nächstes Mal nehmen wir uns kurze Ruhe-Inseln.",
+      "Wir haben Potenzial: Wenn jeder etwas leiser ist, klappt’s richtig gut.",
+      "Das war laut – aber: Wir können lernen, das besser zu steuern.",
+      "Okay, Neustart: leise Stimmen, klare Aufgaben – dann wird’s besser.",
+      "Das war zu unruhig. Wir machen gleich eine kurze Reset-Pause.",
+      "Nicht unser bester Durchgang – aber ihr könnt das deutlich besser!"
+    ]
+  };
+
+  function pick(arr){
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
   let onlyAmpelMode = false;
 
   // PiP window
@@ -562,7 +704,7 @@
   let sirenCount = 0;
 
   // --- Siren (continuous + ramp)
-  let overLoudSince = null;       // ms timestamp: ema >= (red+5) since ...
+  let overLoudSince = null;
   let sirenActive = false;
   let sirenOsc = null, sirenGain = null, sirenLfo = null, sirenLfoGain = null;
   let sirenRampStartMs = 0;
@@ -623,11 +765,11 @@
 
   function storeSettings(){
     const s = readSettings();
-    localStorage.setItem('noise-traffic-light-settings-v3', JSON.stringify({ ...s, baseOffset }));
+    localStorage.setItem('noise-traffic-light-settings-v4', JSON.stringify({ ...s, baseOffset }));
   }
 
   function loadSettings(){
-    const raw = localStorage.getItem('noise-traffic-light-settings-v3');
+    const raw = localStorage.getItem('noise-traffic-light-settings-v4');
     if(!raw) return;
     try{
       const s = JSON.parse(raw);
@@ -656,7 +798,6 @@
     storeSettings();
   }
 
-  // Convert RMS amplitude to "dB" (relative)
   function rmsToDb(rms){
     const eps = 1e-8;
     const db = 20 * Math.log10(Math.max(rms, eps));
@@ -671,7 +812,6 @@
     return Math.sqrt(sum / floatTimeData.length);
   }
 
-  // --- Delayed switching
   function rawStateFromDb(db, s){
     if(db >= s.red) return "red";
     if(db >= s.yellow) return "yellow";
@@ -691,14 +831,13 @@
     setLights(displayedState);
   }
 
-  // --- Siren: continuous "wee-woo" with volume ramp
   function startSiren(){
     if(!audioCtx || sirenActive) return;
 
     const now = audioCtx.currentTime;
 
     sirenGain = audioCtx.createGain();
-    sirenGain.gain.setValueAtTime(0.0001, now); // start very quiet
+    sirenGain.gain.setValueAtTime(0.0001, now);
 
     sirenOsc = audioCtx.createOscillator();
     sirenOsc.type = "sine";
@@ -719,17 +858,15 @@
 
     sirenActive = true;
     sirenRampStartMs = performance.now();
-    sirenCount += 1; // count each siren start once
+    sirenCount += 1;
   }
 
   function updateSirenVolume(targetVolume){
     if(!audioCtx || !sirenActive || !sirenGain) return;
 
-    // ramp to target over ~6 seconds (smooth)
     const elapsed = (performance.now() - sirenRampStartMs) / 1000;
     const rampT = clamp(elapsed / 6, 0, 1);
 
-    // curve: slow start -> stronger
     const minVol = 0.02;
     const vol = minVol + (targetVolume - minVol) * (rampT * rampT);
 
@@ -739,10 +876,8 @@
   }
 
   function stopSiren(){
-    if(!sirenActive){
-      return;
-    }
-    // If context already gone, just reset flags
+    if(!sirenActive) return;
+
     if(!audioCtx){
       sirenOsc = sirenLfo = sirenGain = sirenLfoGain = null;
       sirenActive = false;
@@ -750,13 +885,11 @@
     }
 
     const now = audioCtx.currentTime;
-
     try{
       if(sirenGain){
         sirenGain.gain.cancelScheduledValues(now);
         sirenGain.gain.setTargetAtTime(0.0001, now, 0.05);
       }
-      // stop after fade
       setTimeout(() => {
         try{ sirenOsc?.stop(); }catch{}
         try{ sirenLfo?.stop(); }catch{}
@@ -774,23 +907,14 @@
     emojiR.textContent = "😠";
     emojiR.style.transform = "";
   }
-
   function updateRedEmoji(overForMs){
     if(!emojiR) return;
-
-    // 0..1 over 10s
     const t = clamp(overForMs / 10000, 0, 1);
-
-    // bigger 1.0 -> 1.9
     const scale = 1.0 + 0.9 * t;
-
-    // angrier faces
     let face = "😠";
     if(t >= 0.33) face = "😡";
     if(t >= 0.75) face = "🤬";
     emojiR.textContent = face;
-
-    // shake when very angry
     const shake = (t >= 0.75) ? (Math.sin(performance.now()/55) * 2) : 0;
     emojiR.style.transform = `translateY(0px) scale(${scale}) rotate(${shake}deg)`;
   }
@@ -816,7 +940,6 @@
     const pct = clamp(((ema - 30) / (110 - 30)) * 100, 0, 100);
     fill.style.width = pct.toFixed(1) + "%";
 
-    // calibration capture
     if(calibrating){
       calSamples.push(ema);
       if(performance.now() - calStart >= 10_000){
@@ -829,7 +952,6 @@
       }
     }
 
-    // delayed state logic
     const nowMs = performance.now();
     const raw = rawStateFromDb(ema, s);
 
@@ -848,21 +970,17 @@
       candidateSince = nowMs;
     }
 
-    // --- Siren trigger: over (red + 5 dB) for > 10s continuous
+    // Siren trigger: over (red + 5 dB) for > 10s continuous
     const thresholdOver = s.red + 5;
     const isOver = ema >= thresholdOver;
 
     if(sessionActive && s.sirenOn && isOver){
       if(overLoudSince == null) overLoudSince = nowMs;
-
       const overForMs = nowMs - overLoudSince;
 
-      // Emoji escalation only really makes sense when red lamp is on,
-      // but user asked it for "im roten Licht": we tie it to red lamp being on.
       if(displayedState === "red"){
         updateRedEmoji(overForMs);
       } else {
-        // if not in red display yet, keep base angry face
         resetRedEmoji();
       }
 
@@ -884,6 +1002,12 @@
       analysisBox.classList.remove('show');
       legend.innerHTML = "";
       sirenStats.textContent = "—";
+      copyHint.textContent = "—";
+      lastSummaryText = "";
+      summaryTextEl.textContent = "—";
+      resultEmoji.textContent = "🙂";
+      resultTitle.textContent = "—";
+      resultSentence.textContent = "—";
       resetRedEmoji();
 
       mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -915,7 +1039,7 @@
       sirenCount = 0;
 
       overLoudSince = null;
-      stopSiren(); // ensure clean start
+      stopSiren();
 
       setLive(true);
       update();
@@ -929,27 +1053,22 @@
   function stop(){
     const now = performance.now();
 
-    // stop siren BEFORE closing audio context
     stopSiren();
     overLoudSince = null;
 
-    // end session timing
     if(sessionActive){
       timeIn[displayedState] += Math.max(0, now - lastStateChangeTs);
     }
     sessionActive = false;
 
-    // stop animation loop
     if(rafId) cancelAnimationFrame(rafId);
     rafId = null;
 
-    // stop mic
     if(mediaStream){
       mediaStream.getTracks().forEach(t => t.stop());
       mediaStream = null;
     }
 
-    // close audio context
     if(audioCtx){
       audioCtx.close();
       audioCtx = null;
@@ -960,10 +1079,8 @@
 
     setLive(false);
 
-    // show analysis
     renderAnalysis(timeIn, now - sessionStartTs, sirenCount);
 
-    // reset readouts
     dbVal.textContent = "--";
     fill.style.width = "0%";
     peakVal.textContent = "—";
@@ -980,7 +1097,6 @@
     alert("Kalibrierung startet jetzt für 10 Sekunden.\nBitte in dieser Zeit „typische Ruhe“ im Raum herstellen.");
   }
 
-  // --- Analysis rendering (pie chart)
   function msToNice(ms){
     const s = Math.round(ms / 1000);
     const m = Math.floor(s / 60);
@@ -989,41 +1105,130 @@
     return `${m}m ${String(r).padStart(2,'0')}s`;
   }
 
+  function tryCopyToClipboard(text){
+    // Secure context best: navigator.clipboard
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text);
+    }
+
+    // Fallback:
+    return new Promise((resolve, reject) => {
+      try{
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        ta.style.top = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        ok ? resolve() : reject(new Error("execCommand failed"));
+      }catch(e){
+        reject(e);
+      }
+    });
+  }
+
+  function ratingFromParts(parts){
+    const total = parts.reduce((a,p)=>a+p.value,0) || 1;
+    const red = parts.find(p=>p.key==='red')?.value ?? 0;
+    const green = parts.find(p=>p.key==='green')?.value ?? 0;
+    const redPct = (red/total)*100;
+    const greenPct = (green/total)*100;
+
+    // Anpassbar:
+    if (redPct <= 10 && greenPct >= 60) return "good";
+    if (redPct <= 25) return "ok";
+    return "bad";
+  }
+
+  function setResultUI(kind){
+    if(kind === "good"){
+      resultEmoji.textContent = "😄👍";
+      resultTitle.textContent = "Richtig stark!";
+      resultSentence.textContent = pick(sentences.good);
+      return;
+    }
+    if(kind === "ok"){
+      resultEmoji.textContent = "😐🤷";
+      resultTitle.textContent = "Ganz okay!";
+      resultSentence.textContent = pick(sentences.ok);
+      return;
+    }
+    resultEmoji.textContent = "😞👎";
+    resultTitle.textContent = "Heute war’s zu laut.";
+    resultSentence.textContent = pick(sentences.bad);
+  }
+
   function drawPie(canvas, parts){
     const ctx = canvas.getContext('2d');
     const W = canvas.width, H = canvas.height;
     ctx.clearRect(0,0,W,H);
 
+    // background
     ctx.fillStyle = '#070c1b';
     ctx.fillRect(0,0,W,H);
 
     const total = parts.reduce((a,p)=>a+p.value,0) || 1;
 
-    const cx = Math.floor(W*0.33);
-    const cy = Math.floor(H*0.52);
+    // positions
+    const cx = Math.floor(W*0.37);
+    const cy = Math.floor(H*0.54);
     const r  = Math.floor(Math.min(W,H)*0.33);
 
+    // title
     ctx.fillStyle = '#eaf0ff';
     ctx.font = '700 26px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
     ctx.fillText('Phasen-Verteilung', 28, 48);
 
+    // pie slices + on-slice labels
     let ang = -Math.PI/2;
     parts.forEach(p => {
       const slice = (p.value / total) * (Math.PI*2);
+
+      // slice
       ctx.beginPath();
       ctx.moveTo(cx, cy);
       ctx.arc(cx, cy, r, ang, ang + slice);
       ctx.closePath();
       ctx.fillStyle = p.color;
       ctx.fill();
+
+      // label (time + percent) at mid angle
+      const mid = ang + slice/2;
+      const lx = cx + Math.cos(mid) * (r * 0.78);
+      const ly = cy + Math.sin(mid) * (r * 0.78);
+
+      const pct = Math.round((p.value/total)*100);
+      const label = `${msToNice(p.value)} • ${pct}%`;
+
+      ctx.font = '700 16px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      // contrast outline
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = 'rgba(0,0,0,.55)';
+      ctx.strokeText(label, lx, ly);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText(label, lx, ly);
+
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+
       ang += slice;
     });
 
+    // donut hole
     ctx.beginPath();
     ctx.arc(cx, cy, Math.floor(r*0.55), 0, Math.PI*2);
     ctx.fillStyle = '#070c1b';
     ctx.fill();
 
+    // center text
     ctx.fillStyle = '#eaf0ff';
     ctx.font = '700 22px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
     ctx.textAlign = 'center';
@@ -1033,25 +1238,29 @@
     ctx.fillText(msToNice(total), cx, cy+22);
     ctx.textAlign = 'left';
 
-    const x0 = Math.floor(W*0.62);
+    // right-side small list (optional but nice)
+    const x0 = Math.floor(W*0.70);
     let y0 = 120;
     ctx.font = '600 18px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
     ctx.fillStyle = '#eaf0ff';
-    ctx.fillText('Dauer pro Phase', x0, 90);
+    ctx.fillText('Kurzüberblick', x0, 90);
 
     ctx.font = '500 16px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
     parts.forEach(p => {
       const pct = Math.round((p.value/total)*100);
+
       ctx.fillStyle = p.color;
       ctx.fillRect(x0, y0-14, 14, 14);
 
       ctx.fillStyle = '#b9c6ffcc';
-      ctx.fillText(`${p.label}: ${msToNice(p.value)}  (${pct}%)`, x0 + 22, y0-2);
+      ctx.fillText(`${p.label}: ${msToNice(p.value)} (${pct}%)`, x0 + 22, y0-2);
       y0 += 34;
     });
+
+    ctx.textAlign = 'left';
   }
 
-  function renderAnalysis(timeIn, totalMs, sirenCount){
+  async function renderAnalysis(timeIn, totalMs, sirenCount){
     const parts = [
       { key:'green', label:'Grün', value: timeIn.green, color: '#30d158' },
       { key:'yellow', label:'Gelb', value: timeIn.yellow, color: '#ffd60a' },
@@ -1077,9 +1286,50 @@
 
     sirenStats.textContent = `Sirene gestartet: ${sirenCount}× (Bedingung: ≥ Rot + 5 dB länger als 10 Sekunden, wenn aktiviert).`;
 
+    // rating + sentence
+    const kind = ratingFromParts(parts);
+    setResultUI(kind);
+
+    // summary text
+    const total = parts.reduce((a,p)=>a+p.value,0) || 1;
+    const pct = (v) => Math.round((v/total)*100);
+
+    const line1 = `Lärmampel-Auswertung`;
+    const line2 = `Gesamt: ${msToNice(totalMs)}`;
+    const line3 = `Grün: ${msToNice(timeIn.green)} (${pct(timeIn.green)}%)`;
+    const line4 = `Gelb: ${msToNice(timeIn.yellow)} (${pct(timeIn.yellow)}%)`;
+    const line5 = `Rot:  ${msToNice(timeIn.red)} (${pct(timeIn.red)}%)`;
+    const line6 = `Sirene gestartet: ${sirenCount}×`;
+    const line7 = `Bewertung: ${resultTitle.textContent}`;
+    const line8 = `Satz: ${resultSentence.textContent}`;
+
+    lastSummaryText = [line1, line2, line3, line4, line5, line6, "", line7, line8].join("\n");
+    summaryTextEl.textContent = lastSummaryText;
+
+    // auto copy
+    copyHint.textContent = "Kopiere in Zwischenablage …";
+    try{
+      await tryCopyToClipboard(lastSummaryText);
+      copyHint.textContent = "✅ In die Zwischenablage kopiert.";
+    }catch{
+      copyHint.textContent = "⚠️ Konnte nicht automatisch kopieren (evtl. ohne https). Nutze den Kopieren-Button.";
+    }
+
     analysisBox.classList.add('show');
     analysisBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
+
+  // Copy button
+  btnCopySummary.addEventListener('click', async () => {
+    if(!lastSummaryText) return;
+    copyHint.textContent = "Kopiere …";
+    try{
+      await tryCopyToClipboard(lastSummaryText);
+      copyHint.textContent = "✅ In die Zwischenablage kopiert.";
+    }catch{
+      copyHint.textContent = "⚠️ Kopieren fehlgeschlagen.";
+    }
+  });
 
   // --- Floating overlay logic
   function isDocked(){ return ampelBlock.parentElement === originalParent; }
@@ -1103,7 +1353,6 @@
     btnFloat.textContent = "🪟 Ampel lösen";
   }
 
-  // drag floating window
   (function setupDrag(){
     let dragging = false, startX=0, startY=0, startLeft=0, startTop=0;
     floatingBar.addEventListener('pointerdown', (e) => {
@@ -1166,7 +1415,6 @@
       if(isDocked()) undockToFloating();
       holder.appendChild(ampelBlock);
 
-      // compact PiP
       const ro = ampelBlock.querySelector('.readout');
       if(ro) ro.style.display = 'none';
 
