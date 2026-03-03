@@ -139,6 +139,13 @@
       user-select:none;
       pointer-events:none;
     }
+
+    /* Extra-Animation nur für den roten Smiley */
+    #emojiR{
+      transform-origin: 50% 55%;
+      will-change: transform, filter;
+    }
+    
     .lamp.on .emoji{
       opacity:1;
       transform: translateY(0px) scale(1);
@@ -463,6 +470,7 @@
   const lampG = document.getElementById('lampG');
   const lampY = document.getElementById('lampY');
   const lampR = document.getElementById('lampR');
+  const emojiR = document.getElementById('emojiR');
   const dbVal = document.getElementById('dbVal');
   const fill = document.getElementById('fill');
 
@@ -554,6 +562,17 @@
 
   // --- Siren limiting (avoid constant spam)
   let sirenCooldownUntil = 0;
+
+  // --- New siren trigger: over (red + 5 dB) for >= 10s
+  let overLoudSince = null;     // ms timestamp when ema first went >= (red+5)
+  let sirenActive = false;
+
+  let sirenOsc = null;
+  let sirenGain = null;
+  let sirenLfo = null;
+  let sirenLfoGain = null;
+
+  let sirenRampStartMs = 0;     // for “start quiet -> louder”
 
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -680,32 +699,74 @@
     setLights(displayedState);
   }
 
-  // --- Siren (short "wee-woo" sweep)
-  function playSiren(volume = 0.35){
-    try{
-      // Need a user gesture at least once; start button provides that.
-      if(!audioCtx) return;
-      const now = audioCtx.currentTime;
+ function startSiren(targetVolume){
+  if(!audioCtx || sirenActive) return;
 
-      const gain = audioCtx.createGain();
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, volume), now + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+  // Build a continuous "wee-woo" using an LFO on frequency
+  const now = audioCtx.currentTime;
 
-      const osc = audioCtx.createOscillator();
-      osc.type = "sine";
-      // sweep up and down
-      osc.frequency.setValueAtTime(650, now);
-      osc.frequency.linearRampToValueAtTime(1050, now + 0.14);
-      osc.frequency.linearRampToValueAtTime(650, now + 0.28);
+  sirenGain = audioCtx.createGain();
+  sirenGain.gain.setValueAtTime(0.0001, now); // start very quiet
 
-      osc.connect(gain).connect(audioCtx.destination);
-      osc.start(now);
-      osc.stop(now + 0.34);
-    }catch(e){
-      console.warn("Siren failed:", e);
+  sirenOsc = audioCtx.createOscillator();
+  sirenOsc.type = "sine";
+  sirenOsc.frequency.setValueAtTime(750, now);
+
+  // LFO to modulate pitch (siren feel)
+  sirenLfo = audioCtx.createOscillator();
+  sirenLfo.type = "sine";
+  sirenLfo.frequency.setValueAtTime(2.2, now); // siren speed
+
+  sirenLfoGain = audioCtx.createGain();
+  sirenLfoGain.gain.setValueAtTime(250, now); // pitch swing amount (+/- Hz)
+
+  sirenLfo.connect(sirenLfoGain).connect(sirenOsc.frequency);
+
+  sirenOsc.connect(sirenGain).connect(audioCtx.destination);
+
+  sirenOsc.start(now);
+  sirenLfo.start(now);
+
+  sirenActive = true;
+  sirenRampStartMs = performance.now();
+}
+
+function updateSirenVolume(targetVolume){
+  if(!audioCtx || !sirenActive || !sirenGain) return;
+
+  // Ramp: start quiet -> reach target over ~6 seconds (smooth)
+  const elapsed = (performance.now() - sirenRampStartMs) / 1000;
+  const rampT = Math.max(0, Math.min(1, elapsed / 6));
+
+  // perceptual-ish curve: slow start, then stronger
+  const vol = 0.03 + (targetVolume - 0.03) * (rampT * rampT);
+
+  const now = audioCtx.currentTime;
+  sirenGain.gain.cancelScheduledValues(now);
+  sirenGain.gain.setTargetAtTime(Math.max(0.0001, vol), now, 0.06);
+}
+
+function stopSiren(){
+  if(!sirenActive) return;
+
+  try{
+    const now = audioCtx?.currentTime ?? 0;
+    if(sirenGain){
+      sirenGain.gain.cancelScheduledValues(now);
+      sirenGain.gain.setTargetAtTime(0.0001, now, 0.05);
     }
+    // stop after a short fade
+    setTimeout(() => {
+      try{ sirenOsc?.stop(); }catch{}
+      try{ sirenLfo?.stop(); }catch{}
+      sirenOsc = null; sirenLfo = null; sirenGain = null; sirenLfoGain = null;
+      sirenActive = false;
+    }, 200);
+  }catch{
+    sirenOsc = null; sirenLfo = null; sirenGain = null; sirenLfoGain = null;
+    sirenActive = false;
   }
+}
 
   function update(){
     if(!analyser) return;
@@ -762,17 +823,53 @@
       candidateSince = nowMs;
     }
 
-    // Siren when "double red" (>= 2x red threshold)
-    // cooldown to avoid constant spam
-    const doubleRed = ema >= (2 * s.red);
-    if(sessionActive && s.sirenOn && doubleRed){
-      if(nowMs >= sirenCooldownUntil){
-        playSiren(s.sirenVol);
-        sirenCount += 1;
-        sirenCooldownUntil = nowMs + 2000; // 2s cooldown
-      }
-    }
+    // --- New siren + red emoji escalation
+const thresholdOver = s.red + 5; // Rot + 5 dB
+const isOver = ema >= thresholdOver;
 
+if(sessionActive && s.sirenOn && isOver){
+  if(overLoudSince == null) overLoudSince = performance.now();
+
+  const overForMs = performance.now() - overLoudSince;
+
+  // escalate red emoji only when red lamp is actually on (or when over threshold)
+  if(emojiR){
+    // 0..1 over 10 seconds
+    const t = Math.max(0, Math.min(1, overForMs / 10000));
+
+    // grow 1.0 -> 1.9
+    const scale = 1.0 + 0.9 * t;
+
+    // angry progression
+    let face = "😠";
+    if(t >= 0.33) face = "😡";
+    if(t >= 0.75) face = "🤬";
+
+    emojiR.textContent = face;
+
+    // add slight shake when very angry
+    const shake = (t >= 0.75) ? (Math.sin(performance.now()/55) * 2) : 0;
+
+    emojiR.style.transform = `translateY(0px) scale(${scale}) rotate(${shake}deg)`;
+  }
+
+  // siren triggers only after > 10s continuous over-threshold
+  if(overForMs >= 10000){
+    startSiren(s.sirenVol);
+    updateSirenVolume(s.sirenVol);
+  }
+} else {
+  overLoudSince = null;
+
+  // reset emoji back to normal when not over
+  if(emojiR){
+    emojiR.textContent = "😠";
+    emojiR.style.transform = "";
+  }
+
+  // stop siren if it was active
+  stopSiren();
+}
     rafId = requestAnimationFrame(update);
   }
 
@@ -857,6 +954,8 @@
     peakVal.textContent = "—";
     stateText.textContent = "—";
     setLights("green");
+    stopSiren();
+    overLoudSince = null;
   }
 
   function calibrate(){
