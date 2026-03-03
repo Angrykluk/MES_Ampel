@@ -340,9 +340,9 @@
 
     /* Kinderfreundliche große Schrift in der Auswertung */
     .bigKidText{
-      font-size:18px;
+      font-size:20px;
       line-height:1.35;
-      font-weight:900;
+      font-weight:1000;
     }
 
     .reportWrap{
@@ -530,8 +530,7 @@
         <div class="bigKidText" id="kidText" style="margin-bottom:12px;">—</div>
 
         <div class="reportWrap">
-          <!-- Das ist das Bild, das kopiert wird -->
-          <canvas id="report" width="1400" height="840" aria-label="Report Bild"></canvas>
+          <canvas id="report" width="1400" height="820" aria-label="Report Bild"></canvas>
         </div>
       </div>
     </section>
@@ -614,6 +613,37 @@
   let pipWin = null;
   const pipSupported = !!(window.documentPictureInPicture && window.documentPictureInPicture.requestWindow);
 
+  // --- Sätze (optional aus externer Datei sentences.json)
+  let sentences = { good: [], ok: [], bad: [] };
+  async function loadSentences(){
+    try{
+      const res = await fetch(`sentences.json?v=${Date.now()}`, { cache: "no-store" });
+      if(!res.ok) throw new Error("sentences.json not found");
+      const data = await res.json();
+      sentences = {
+        good: Array.isArray(data.good) ? data.good : [],
+        ok:   Array.isArray(data.ok)   ? data.ok   : [],
+        bad:  Array.isArray(data.bad)  ? data.bad  : []
+      };
+    }catch(e){
+      console.warn("Konnte sentences.json nicht laden, nutze Fallback.", e);
+      sentences = {
+        good: ["Super gemacht!"],
+        ok: ["Guter Versuch – nächstes Mal wird’s noch besser!"],
+        bad: ["Heute war’s laut – morgen schaffen wir’s ruhiger!"]
+      };
+    }
+  }
+  function pickSentence(kind){
+    const arr = sentences[kind] || [];
+    if(arr.length === 0){
+      if(kind === "good") return "Super gemacht!";
+      if(kind === "ok") return "Guter Versuch – nächstes Mal wird’s noch besser!";
+      return "Heute war’s laut – morgen schaffen wir’s ruhiger!";
+    }
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
   // --- Audio analysis
   let audioCtx = null;
   let analyser = null;
@@ -649,45 +679,8 @@
   let sirenOsc = null, sirenGain = null, sirenLfo = null, sirenLfoGain = null;
   let sirenRampStartMs = 0;
 
- let sentences = { good: [], ok: [], bad: [] };
-
-async function loadSentences(){
-  try{
-    // Cache-Bust, damit Updates auf GitHub Pages schnell sichtbar sind
-    const res = await fetch(`sentences.json?v=${Date.now()}`, { cache: "no-store" });
-    if(!res.ok) throw new Error("sentences.json not found");
-    const data = await res.json();
-
-    // Defensive: egal wie viele Einträge – wir nehmen Arrays, sonst fallback
-    sentences = {
-      good: Array.isArray(data.good) ? data.good : [],
-      ok:   Array.isArray(data.ok)   ? data.ok   : [],
-      bad:  Array.isArray(data.bad)  ? data.bad  : []
-    };
-  }catch(e){
-    console.warn("Konnte sentences.json nicht laden, nutze Fallback.", e);
-    // Minimaler Fallback, damit es nicht leer ist:
-    sentences = {
-      good: ["Super gemacht!"],
-      ok: ["Guter Versuch – nächstes Mal wird’s noch besser!"],
-      bad: ["Heute war’s laut – morgen schaffen wir’s ruhiger!"]
-    };
-  }
-}
-
-function pickSentence(kind){
-  const arr = sentences[kind] || [];
-  if(arr.length === 0){
-    // Notfall-Fallback, falls JSON leer/kaputt
-    if(kind === "good") return "Super gemacht!";
-    if(kind === "ok") return "Guter Versuch – nächstes Mal wird’s noch besser!";
-    return "Heute war’s laut – morgen schaffen wir’s ruhiger!";
-  }
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  const strictnessName = (v) => (v === 0 ? "locker" : (v === 2 ? "streng" : "normal"));
 
   function setLive(on){
     liveDot.classList.toggle('live', on);
@@ -696,12 +689,6 @@ function pickSentence(kind){
     btnStart.disabled = on;
     btnStop.disabled  = !on;
     btnCal.disabled   = !on;
-  }
-
-  function strictnessName(v){
-    if(v === 0) return "locker";
-    if(v === 2) return "streng";
-    return "normal";
   }
 
   function readSettings(){
@@ -717,7 +704,7 @@ function pickSentence(kind){
       offset: Number(offset.value),
       sirenOn: !!sirenOn.checked,
       sirenVol: Number(sirenVol.value),
-      strictness: Number(strictness.value) // 0..2
+      strictness: Number(strictness.value)
     };
   }
 
@@ -752,10 +739,10 @@ function pickSentence(kind){
 
   function storeSettings(){
     const s = readSettings();
-    localStorage.setItem('noise-traffic-light-settings-v5', JSON.stringify({ ...s, baseOffset }));
+    localStorage.setItem('noise-traffic-light-settings-v6', JSON.stringify({ ...s, baseOffset }));
   }
   function loadSettings(){
-    const raw = localStorage.getItem('noise-traffic-light-settings-v5');
+    const raw = localStorage.getItem('noise-traffic-light-settings-v6');
     if(!raw) return;
     try{
       const s = JSON.parse(raw);
@@ -1085,17 +1072,12 @@ function pickSentence(kind){
   }
 
   function getStrictThresholds(level){
-    // level: 0 locker, 1 normal, 2 streng
-    if(level === 0){
-      return { goodRedMax: 15, goodGreenMin: 55, okRedMax: 30 };
-    }
-    if(level === 2){
-      return { goodRedMax: 7, goodGreenMin: 65, okRedMax: 18 };
-    }
+    if(level === 0) return { goodRedMax: 15, goodGreenMin: 55, okRedMax: 30 };
+    if(level === 2) return { goodRedMax: 7, goodGreenMin: 65, okRedMax: 18 };
     return { goodRedMax: 10, goodGreenMin: 60, okRedMax: 25 };
   }
 
-  function rating(totalMs, greenMs, yellowMs, redMs, strictLevel){
+  function rating(totalMs, greenMs, redMs, strictLevel){
     const total = Math.max(1, totalMs);
     const redPct = (redMs/total)*100;
     const greenPct = (greenMs/total)*100;
@@ -1112,6 +1094,7 @@ function pickSentence(kind){
     return { emoji:"😞👎", title:"Heute war’s zu laut.", sentence: pickSentence("bad") };
   }
 
+  // --- Tortendiagramm (voll, kein Donut) + Label nur Zeit
   function drawPieTo(ctx, cx, cy, r, parts){
     const total = parts.reduce((a,p)=>a+p.value,0) || 1;
     let ang = -Math.PI/2;
@@ -1126,19 +1109,20 @@ function pickSentence(kind){
       ctx.fillStyle = p.color;
       ctx.fill();
 
-      // label
+      // Label nur Zeit
       const mid = ang + slice/2;
-      const lx = cx + Math.cos(mid) * (r * 0.78);
-      const ly = cy + Math.sin(mid) * (r * 0.78);
-      const pct = Math.round((p.value/total)*100);
-      const label = `${msToNice(p.value)} • ${pct}%`;
+      const lx = cx + Math.cos(mid) * (r * 0.72);
+      const ly = cy + Math.sin(mid) * (r * 0.72);
 
-      ctx.font = '900 18px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+      const label = `${msToNice(p.value)}`;
+
+      ctx.font = '1000 22px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
-      ctx.lineWidth = 5;
-      ctx.strokeStyle = 'rgba(255,255,255,.92)';
+      // weißer Rand für gute Lesbarkeit
+      ctx.lineWidth = 7;
+      ctx.strokeStyle = 'rgba(255,255,255,.96)';
       ctx.strokeText(label, lx, ly);
 
       ctx.fillStyle = '#111';
@@ -1150,122 +1134,22 @@ function pickSentence(kind){
       ang += slice;
     });
 
-    // donut hole
+    // Mitte: Gesamtzeit
+    ctx.fillStyle = 'rgba(255,255,255,.88)';
     ctx.beginPath();
-    ctx.arc(cx, cy, Math.floor(r*0.55), 0, Math.PI*2);
-    ctx.fillStyle = '#ffffff';
+    ctx.arc(cx, cy, Math.floor(r*0.33), 0, Math.PI*2);
     ctx.fill();
 
-    // center
     ctx.fillStyle = '#111';
-    ctx.font = '1000 22px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+    ctx.font = '1000 24px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
     ctx.textAlign = 'center';
     ctx.fillText('Gesamt', cx, cy-10);
-    ctx.font = '900 22px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
-    ctx.fillStyle = 'rgba(0,0,0,.70)';
-    ctx.fillText(msToNice(total), cx, cy+20);
-    ctx.textAlign = 'left';
-  }
 
-  function makeReportCanvas(parts, totalMs, sirenCount, strictLevel){
-    const ctx = report.getContext('2d');
-    const W = report.width, H = report.height;
-
-    // background
-    ctx.clearRect(0,0,W,H);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0,0,W,H);
-
-    // top bar
-    ctx.fillStyle = 'rgba(76,111,255,.10)';
-    ctx.fillRect(0,0,W,110);
-
-    ctx.fillStyle = '#111';
-    ctx.font = '1000 34px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
-    ctx.fillText('Lärmampel – Auswertung', 40, 52);
-
-    ctx.font = '900 18px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
-    ctx.fillStyle = 'rgba(0,0,0,.70)';
-    ctx.fillText(`Gesamtzeit: ${msToNice(totalMs)}   •   Bewertung: ${strictnessName(strictLevel)}`, 40, 86);
-
-    // pie area
-    const pieCx = Math.floor(W*0.30);
-    const pieCy = 430;
-    const pieR  = 260;
-    drawPieTo(ctx, pieCx, pieCy, pieR, parts);
-
-    // right content
-    const total = parts.reduce((a,p)=>a+p.value,0) || 1;
-    const g = parts.find(p=>p.key==='green')?.value ?? 0;
-    const y = parts.find(p=>p.key==='yellow')?.value ?? 0;
-    const r = parts.find(p=>p.key==='red')?.value ?? 0;
-    const pct = (v) => Math.round((v/total)*100);
-
-    const kind = rating(totalMs, g, y, r, strictLevel);
-    const result = emojiAndTitle(kind);
-
-    const x0 = Math.floor(W*0.58);
-    let y0 = 170;
-
-    // Emoji + title
-    ctx.font = '1000 86px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
-    ctx.fillStyle = '#111';
-    ctx.fillText(result.emoji, x0, y0);
-
-    y0 += 10;
-    ctx.font = '1000 40px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
-    ctx.fillText(result.title, x0, y0 + 70);
-
-    // Sentence box
-    y0 += 120;
-    ctx.fillStyle = 'rgba(0,0,0,.04)';
-    roundRect(ctx, x0, y0, W - x0 - 40, 120, 18);
-    ctx.fill();
-
-    ctx.fillStyle = '#111';
-    ctx.font = '900 22px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
-    wrapText(ctx, result.sentence, x0 + 18, y0 + 40, W - x0 - 40 - 36, 28);
-
-    // Structured summary
-    y0 += 150;
-    ctx.fillStyle = 'rgba(0,0,0,.04)';
-    roundRect(ctx, x0, y0, W - x0 - 40, 280, 18);
-    ctx.fill();
-
-    ctx.fillStyle = '#111';
     ctx.font = '1000 26px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
-    ctx.fillText('Wichtige Infos', x0 + 18, y0 + 42);
+    ctx.fillStyle = 'rgba(0,0,0,.72)';
+    ctx.fillText(msToNice(total), cx, cy+24);
 
-    ctx.font = '900 22px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
-    ctx.fillStyle = 'rgba(0,0,0,.78)';
-    ctx.fillText(`🟢 Grün: ${msToNice(g)}  (${pct(g)}%)`, x0 + 18, y0 + 90);
-    ctx.fillText(`🟡 Gelb: ${msToNice(y)}  (${pct(y)}%)`, x0 + 18, y0 + 130);
-    ctx.fillText(`🔴 Rot:  ${msToNice(r)}  (${pct(r)}%)`, x0 + 18, y0 + 170);
-    ctx.fillText(`🚨 Sirene: ${sirenCount}× gestartet`, x0 + 18, y0 + 210);
-
-    // bottom tip
-    ctx.fillStyle = 'rgba(76,111,255,.10)';
-    ctx.fillRect(0, H-85, W, 85);
-
-    ctx.fillStyle = '#111';
-    ctx.font = '1000 22px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
-    const tip = (kind === "good")
-      ? "Tipp: Haltet die Ruhe – dann geht’s genauso stark weiter!"
-      : (kind === "ok")
-        ? "Tipp: Wir machen kurze Ruhe-Checks – dann wird’s richtig super!"
-        : "Tipp: Leise Stimmen + klare Aufgaben – dann klappt’s morgen besser!";
-    ctx.fillText(tip, 40, H-35);
-
-    // return also kidText lines for page text
-    const headline = `${result.emoji} ${result.title}`;
-    const lines = [
-      headline,
-      `Gesamtzeit: ${msToNice(totalMs)} (Bewertung: ${strictnessName(strictLevel)})`,
-      `Grün: ${msToNice(g)} (${pct(g)}%)  |  Gelb: ${msToNice(y)} (${pct(y)}%)  |  Rot: ${msToNice(r)} (${pct(r)}%)`,
-      `Sirene: ${sirenCount}× gestartet`,
-      result.sentence
-    ];
-    return { kind, result, textLines: lines };
+    ctx.textAlign = 'left';
   }
 
   function roundRect(ctx, x, y, w, h, r){
@@ -1301,7 +1185,6 @@ function pickSentence(kind){
   }
 
   async function copyCanvasImageToClipboard(canvas){
-    // Clipboard image write typically requires secure context + user gesture
     const blob = await canvasToBlob(canvas);
     if(!blob) throw new Error("Blob creation failed");
     if(!(navigator.clipboard && window.ClipboardItem)) {
@@ -1311,12 +1194,106 @@ function pickSentence(kind){
     return blob;
   }
 
+  function makeReportCanvas(parts, totalMs, sirenCount, strictLevel){
+    const ctx = report.getContext('2d');
+    const W = report.width, H = report.height;
+
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0,0,W,H);
+
+    // Top area
+    ctx.fillStyle = 'rgba(76,111,255,.10)';
+    ctx.fillRect(0,0,W,120);
+
+    ctx.fillStyle = '#111';
+    ctx.font = '1000 36px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+    ctx.fillText('Lärmampel – Auswertung', 40, 55);
+
+    ctx.font = '1000 20px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+    ctx.fillStyle = 'rgba(0,0,0,.70)';
+    ctx.fillText(`Gesamtzeit: ${msToNice(totalMs)}   •   Bewertung: ${strictnessName(strictLevel)}`, 40, 92);
+
+    // Pie (größer)
+    const pieCx = Math.floor(W*0.30);
+    const pieCy = 470;
+    const pieR  = 310;
+    drawPieTo(ctx, pieCx, pieCy, pieR, parts);
+
+    // Right content: Smiley + Satz viel größer
+    const g = parts.find(p=>p.key==='green')?.value ?? 0;
+    const r = parts.find(p=>p.key==='red')?.value ?? 0;
+    const kind = rating(totalMs, g, r, strictLevel);
+    const result = emojiAndTitle(kind);
+
+    const x0 = Math.floor(W*0.58);
+    let y0 = 190;
+
+    // Big emoji
+    ctx.font = '1000 120px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+    ctx.fillStyle = '#111';
+    ctx.fillText(result.emoji, x0, y0);
+
+    // Title
+    ctx.font = '1000 52px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+    ctx.fillText(result.title, x0, y0 + 80);
+
+    // Sentence big box
+    const boxY = y0 + 120;
+    const boxW = W - x0 - 40;
+    const boxH = 260;
+
+    ctx.fillStyle = 'rgba(0,0,0,.045)';
+    roundRect(ctx, x0, boxY, boxW, boxH, 22);
+    ctx.fill();
+
+    ctx.fillStyle = '#111';
+    ctx.font = '1000 30px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+    wrapText(ctx, result.sentence, x0 + 22, boxY + 60, boxW - 44, 40);
+
+    // Sirene info (bleibt, sonst keine "Wichtigen Infos")
+    const sirText = (sirenCount > 0)
+      ? `🚨 Sirene: gestartet (${sirenCount}×)`
+      : `✅ Sirene: nicht gestartet`;
+
+    ctx.fillStyle = 'rgba(76,111,255,.10)';
+    roundRect(ctx, x0, boxY + boxH + 22, boxW, 90, 20);
+    ctx.fill();
+
+    ctx.fillStyle = '#111';
+    ctx.font = '1000 30px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+    ctx.fillText(sirText, x0 + 22, boxY + boxH + 78);
+
+    // Bottom tip bar
+    ctx.fillStyle = 'rgba(76,111,255,.10)';
+    ctx.fillRect(0, H-85, W, 85);
+
+    ctx.fillStyle = '#111';
+    ctx.font = '1000 22px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+    const tip = (kind === "good")
+      ? "Tipp: Haltet die Ruhe – dann geht’s genauso stark weiter!"
+      : (kind === "ok")
+        ? "Tipp: Wir machen kurze Ruhe-Checks – dann wird’s richtig super!"
+        : "Tipp: Leise Stimmen + klare Aufgaben – dann klappt’s morgen besser!";
+    ctx.fillText(tip, 40, H-35);
+
+    const sirLine = (sirenCount > 0) ? `Sirene: gestartet (${sirenCount}×)` : `Sirene: nicht gestartet`;
+    const lines = [
+      `${result.emoji} ${result.title}`,
+      `Gesamtzeit: ${msToNice(totalMs)} (Bewertung: ${strictnessName(strictLevel)})`,
+      `${sirLine}`,
+      result.sentence
+    ];
+    return { kind, result, textLines: lines };
+  }
+
   async function renderReport(timeIn, totalMs, sirenCount){
     const s = readSettings();
+    const css = getComputedStyle(document.documentElement);
     const parts = [
-      { key:'green', label:'Grün', value: timeIn.green, color: getComputedStyle(document.documentElement).getPropertyValue('--good').trim() || '#2ecc71' },
-      { key:'yellow', label:'Gelb', value: timeIn.yellow, color: getComputedStyle(document.documentElement).getPropertyValue('--warn').trim() || '#f1c40f' },
-      { key:'red', label:'Rot', value: timeIn.red, color: getComputedStyle(document.documentElement).getPropertyValue('--bad').trim() || '#e74c3c' },
+      { key:'green', label:'Grün', value: timeIn.green, color: css.getPropertyValue('--good').trim() || '#2ecc71' },
+      { key:'yellow', label:'Gelb', value: timeIn.yellow, color: css.getPropertyValue('--warn').trim() || '#f1c40f' },
+      { key:'red', label:'Rot', value: timeIn.red, color: css.getPropertyValue('--bad').trim() || '#e74c3c' },
     ];
 
     analysisMeta.textContent = `Gesamtdauer: ${msToNice(totalMs)}   •   Bewertung: ${strictnessName(s.strictness)}`;
@@ -1326,10 +1303,8 @@ function pickSentence(kind){
     analysisCard.style.display = "block";
     analysisCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    // prepare blob for download/copy
     lastReportBlob = await canvasToBlob(report);
 
-    // Auto-copy attempt (may be blocked). We try once; if blocked, user uses button.
     copyHint.textContent = "Versuche automatisch zu kopieren …";
     try{
       await copyCanvasImageToClipboard(report);
@@ -1361,7 +1336,6 @@ function pickSentence(kind){
     btnFloat.textContent = "🪟 Ampel lösen";
   }
 
-  // drag floating
   (function setupDrag(){
     let dragging = false, startX=0, startY=0, startLeft=0, startTop=0;
     floatingBar.addEventListener('pointerdown', (e) => {
@@ -1503,8 +1477,8 @@ function pickSentence(kind){
   btnReset.addEventListener('click', () => { resetSettings(); alert("Zurückgesetzt."); });
 
   // init
-  loadSettings();
   await loadSentences();
+  loadSettings();
   syncUI();
   setLive(false);
   setLights("green");
