@@ -8,7 +8,6 @@
     :root{
       --bg1:#0b1220;
       --bg2:#101a33;
-      --card:#0f1a34cc;
       --stroke:#ffffff1f;
       --text:#eaf0ff;
       --muted:#b9c6ffcc;
@@ -40,9 +39,8 @@
       grid-template-columns: 420px 1fr;
       gap:22px;
     }
-    @media (max-width: 900px){
-      .wrap{grid-template-columns: 1fr; }
-    }
+    @media (max-width: 900px){ .wrap{grid-template-columns: 1fr;} }
+
     .card{
       background: linear-gradient(180deg, #0f1a34cc, #0b142bcc);
       border:1px solid var(--stroke);
@@ -75,7 +73,7 @@
     .dot.live{ background: var(--good); box-shadow: 0 0 0 3px #30d15833, 0 0 18px #30d15866; }
     .dot.off{ background:#6b7280; }
 
-    /* --- Ampel UI (wird in Overlay/PiP verschoben) --- */
+    /* Ampel */
     .ampelArea{
       padding:18px;
       display:flex;
@@ -101,9 +99,7 @@
       pointer-events:none;
     }
     .lamp{
-      width:110px;
-      height:110px;
-      border-radius:50%;
+      width:110px;height:110px;border-radius:50%;
       margin:10px auto;
       background: radial-gradient(circle at 35% 30%, #ffffff22, transparent 45%),
                   radial-gradient(circle at 50% 60%, #00000066, transparent 58%),
@@ -111,15 +107,10 @@
       border: 1px solid #ffffff22;
       box-shadow: inset 0 -18px 30px #00000066, 0 10px 24px #00000055;
       position:relative;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      display:flex; align-items:center; justify-content:center;
     }
     .lamp.on{
-      box-shadow:
-        inset 0 -18px 30px #00000055,
-        0 10px 24px #00000055,
-        0 0 38px currentColor;
+      box-shadow: inset 0 -18px 30px #00000055, 0 10px 24px #00000055, 0 0 38px currentColor;
       border-color: #ffffff3a;
     }
     .lamp.good{ color: var(--good); background:
@@ -138,7 +129,7 @@
       radial-gradient(circle at 50% 50%, #ff453acc, #7a1711 70%);
     }
 
-    /* Smiley: nur sichtbar, wenn diese Lampe aktiv ist */
+    /* Smiley nur bei aktiver Lampe */
     .emoji{
       font-size:46px;
       filter: drop-shadow(0 10px 12px rgba(0,0,0,.45));
@@ -153,7 +144,7 @@
       transform: translateY(0px) scale(1);
     }
 
-    .readout{ flex:1; min-width: 200px; }
+    .readout{ flex:1; min-width: 220px; }
     .big{ font-size:46px; line-height:1; margin:0 0 8px 0; letter-spacing:-.8px; }
     .label{ margin:0; color:var(--muted); font-size:13px; }
     .bar{
@@ -178,6 +169,8 @@
       margin-top:8px;
       color:var(--muted);
       font-size:12px;
+      gap:8px;
+      flex-wrap:wrap;
     }
 
     .controls{
@@ -187,9 +180,7 @@
       grid-template-columns: 1fr 1fr;
       gap:14px 14px;
     }
-    @media (max-width: 900px){
-      .controls{ grid-template-columns: 1fr; }
-    }
+    @media (max-width: 900px){ .controls{ grid-template-columns: 1fr; } }
     .row{
       padding:12px;
       border:1px solid var(--stroke);
@@ -204,13 +195,8 @@
       letter-spacing:.2px;
     }
     input[type="range"]{ width:100%; accent-color: var(--accent); }
-    .vals{
-      display:flex;
-      justify-content:space-between;
-      font-size:12px;
-      color: var(--muted);
-      margin-top:6px;
-    }
+    .vals{ display:flex; justify-content:space-between; font-size:12px; color: var(--muted); margin-top:6px; gap:10px;}
+    .vals span{ white-space:nowrap; }
 
     .btns{
       padding:18px;
@@ -233,11 +219,9 @@
     }
     button:hover{ transform: translateY(-1px); }
     button:active{ transform: translateY(0px); }
-    button.secondary{
-      background: linear-gradient(180deg, #0f1a36, #0b1225);
-      color:var(--muted);
-    }
+    button.secondary{ background: linear-gradient(180deg, #0f1a36, #0b1225); color:var(--muted); }
     button:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
+
     .note{
       padding:16px 18px 18px 18px;
       color:var(--muted);
@@ -247,14 +231,8 @@
 
     .panel{ padding:18px; }
     .panel h2{ margin:0 0 10px 0; font-size:16px; }
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:14px;
-    }
-    @media (max-width: 900px){
-      .grid{ grid-template-columns: 1fr; }
-    }
+    .grid{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+    @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
     .stat{
       padding:14px;
       border:1px solid var(--stroke);
@@ -263,16 +241,17 @@
     }
     .stat .k{ color:var(--muted); font-size:12px; margin:0 0 6px 0; }
     .stat .v{ font-size:20px; margin:0; letter-spacing:-.3px; }
+
     .footer{ padding:12px 18px 18px 18px; color:var(--muted); font-size:12px; }
 
-    /* --- Floating overlay ("Ampel-only") --- */
+    /* Floating overlay */
     .floatingHost{
       position:fixed;
       left: 24px;
       top: 24px;
       z-index: 999999;
-      width: 320px;
-      max-width: calc(100vw - 24px - 24px);
+      width: 340px;
+      max-width: calc(100vw - 48px);
       border-radius: 16px;
       border: 1px solid var(--stroke);
       background: linear-gradient(180deg, #0f1a34ee, #0b142bee);
@@ -302,24 +281,31 @@
       align-items:center;
       gap:8px;
     }
-    .floatingBody{
-      padding:12px;
-    }
-    .miniBtns{
-      display:flex; gap:8px; align-items:center;
-    }
-    .miniBtns button{
-      padding:8px 10px;
-      border-radius:10px;
-      font-size:12px;
-    }
+    .floatingBody{ padding:12px; }
+    .miniBtns{ display:flex; gap:8px; align-items:center; }
+    .miniBtns button{ padding:8px 10px; border-radius:10px; font-size:12px; }
     .onlyAmpel .readout{ display:none; }
     .onlyAmpel .ampelArea{ padding:0; }
     .onlyAmpel .ampel{ margin:0 auto; }
+
+    /* Auswertung */
+    .analysisBox{ padding:18px; border-top:1px solid var(--stroke); display:none; }
+    .analysisBox.show{ display:block; }
+    .analysisHead{
+      display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;
+    }
+    .analysisHead h3{ margin:0; font-size:14px; color:var(--text); }
+    .analysisMeta{ color:var(--muted); font-size:12px; }
+    canvas{ width:100%; height:auto; border-radius:14px; border:1px solid var(--stroke); background:#070c1b; }
+    .legend{ margin-top:10px; display:grid; grid-template-columns: 1fr; gap:8px; }
+    .legendItem{ display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:12px; color:var(--muted); }
+    .swatch{ width:12px; height:12px; border-radius:3px; display:inline-block; margin-right:8px; border:1px solid #ffffff22; }
+    .leftLegend{ display:flex; align-items:center; gap:8px; }
+    .warnline{ margin-top:10px; font-size:12px; color:var(--muted); }
   </style>
 </head>
 <body>
-  <!-- Floating overlay container -->
+  <!-- Floating overlay -->
   <div id="floatingHost" class="floatingHost" aria-label="Schwebendes Ampelfenster">
     <div id="floatingBar" class="floatingBar" title="Zum Verschieben ziehen">
       <div class="floatingTitle">🪟 Lärmampel (schwebend)</div>
@@ -332,7 +318,7 @@
   </div>
 
   <div class="wrap">
-    <!-- LEFT: Ampel -->
+    <!-- LEFT -->
     <section class="card">
       <header>
         <h1>
@@ -341,31 +327,23 @@
         </h1>
       </header>
 
-      <!-- Dieses Element wird für Overlay/PiP verschoben -->
       <div id="ampelBlock" class="ampelArea">
         <div class="ampel" aria-label="Ampel">
-          <div id="lampG" class="lamp good on" title="Grün">
-            <span class="emoji" aria-hidden="true">😄</span>
-          </div>
-          <div id="lampY" class="lamp warn" title="Gelb">
-            <span class="emoji" aria-hidden="true">😐</span>
-          </div>
-          <div id="lampR" class="lamp bad" title="Rot">
-            <span class="emoji" aria-hidden="true">😠</span>
-          </div>
+          <div id="lampG" class="lamp good on" title="Grün"><span class="emoji" aria-hidden="true">😄</span></div>
+          <div id="lampY" class="lamp warn" title="Gelb"><span class="emoji" aria-hidden="true">😐</span></div>
+          <div id="lampR" class="lamp bad" title="Rot"><span class="emoji" aria-hidden="true">😠</span></div>
         </div>
 
         <div class="readout">
           <p class="big"><span id="dbVal">--</span> <span style="font-size:18px;color:var(--muted)">dB</span></p>
           <p class="label">Gemessener Pegel (relativ, aus Mikrofon)</p>
 
-          <div class="bar" aria-label="Pegelanzeige">
-            <div id="fill" class="fill"></div>
-          </div>
+          <div class="bar" aria-label="Pegelanzeige"><div id="fill" class="fill"></div></div>
           <div class="ticks">
             <span>Leise</span>
             <span id="t1">Gelb</span>
             <span id="t2">Rot</span>
+            <span id="tHold">Wechsel: 5.0s stabil</span>
           </div>
         </div>
       </div>
@@ -384,6 +362,12 @@
         </div>
 
         <div class="row">
+          <h3>Reaktions-Verzögerung (Farbwechsel)</h3>
+          <input id="holdSec" type="range" min="0" max="10" value="5" step="0.5" />
+          <div class="vals"><span>schnell</span><span><span id="holdVal">5.0</span> s</span></div>
+        </div>
+
+        <div class="row">
           <h3>Glättung (ruhiger / reaktiver)</h3>
           <input id="smooth" type="range" min="0.05" max="0.6" value="0.18" step="0.01" />
           <div class="vals"><span>Reaktiver</span><span><span id="smoothVal">0.18</span></span></div>
@@ -394,6 +378,18 @@
           <input id="offset" type="range" min="-25" max="25" value="0" step="0.5" />
           <div class="vals"><span>leiser</span><span><span id="offsetVal">0</span> dB</span></div>
         </div>
+
+        <div class="row">
+          <h3>Sirene bei „doppelt Rot“ (≥ 2× Rot)</h3>
+          <label style="display:flex;gap:10px;align-items:center;color:var(--muted);font-size:12px;">
+            <input id="sirenOn" type="checkbox" />
+            Sirene aktivieren
+          </label>
+          <div style="margin-top:10px;">
+            <input id="sirenVol" type="range" min="0" max="1" value="0.35" step="0.01" />
+            <div class="vals"><span>leise</span><span>Lautstärke: <span id="sirenVolVal">0.35</span></span></div>
+          </div>
+        </div>
       </div>
 
       <div class="btns">
@@ -402,19 +398,30 @@
         <button id="btnCal" class="secondary" disabled>🧪 Kalibrieren (10s)</button>
 
         <button id="btnFloat" class="secondary">🪟 Ampel lösen</button>
-        <button id="btnPip" class="secondary" title="Browserabhängig (Chromium) – wirkt wie immer im Vordergrund">📌 Mini-Fenster</button>
+        <button id="btnPip" class="secondary" title="Edge (Chromium): Document Picture-in-Picture (wenn verfügbar)">📌 Mini-Fenster</button>
 
         <button id="btnSave" class="secondary">💾 Einstellungen speichern</button>
         <button id="btnLoad" class="secondary">↩️ Laden</button>
         <button id="btnReset" class="secondary">♻️ Reset</button>
       </div>
 
+      <div class="analysisBox" id="analysisBox">
+        <div class="analysisHead">
+          <h3>Auswertung (letzte Session)</h3>
+          <div class="analysisMeta" id="analysisMeta">—</div>
+        </div>
+        <canvas id="pie" width="900" height="520" aria-label="Tortendiagramm"></canvas>
+        <div class="legend" id="legend"></div>
+        <div class="warnline" id="sirenStats">—</div>
+      </div>
+
       <div class="note">
-        <b>Hinweis:</b> „Mini-Fenster“ nutzt (wenn verfügbar) Document-Picture-in-Picture. Falls dein Browser das nicht unterstützt, bleibt „Ampel lösen“ als Overlay.
+        <b>Hinweis:</b> Dezibel sind hier „relativ“. Für den Unterricht zählt die klare Ampel-Logik.
+        Die Verzögerung sorgt dafür, dass die Ampel erst bei <b>stabilem Zustand</b> umschaltet.
       </div>
     </section>
 
-    <!-- RIGHT: Infos -->
+    <!-- RIGHT -->
     <section class="card">
       <div class="panel">
         <h2>Übersicht & Status</h2>
@@ -432,16 +439,16 @@
             <p class="v"><span id="sY">60</span> / <span id="sR">75</span> dB</p>
           </div>
           <div class="stat">
-            <p class="k">Tipp</p>
+            <p class="k">Farbwechsel</p>
             <p class="v" style="font-size:14px;line-height:1.35;color:var(--muted)">
-              Für Beamer: Vollbild (F11) + „Ampel lösen“. Dann kannst du sie in eine Ecke schieben.
+              Wechsel erst nach <b><span id="holdInfo">5.0</span>s</b> stabiler Lautstärke.
             </p>
           </div>
         </div>
       </div>
 
       <div class="footer">
-        Mikrofonzugriff funktioniert i.d.R. über https oder localhost.
+        Tipp für Beamer: Vollbild (F11) + „Ampel lösen“ oder „Mini-Fenster“.
       </div>
     </section>
   </div>
@@ -451,7 +458,7 @@
   // --- DOM
   const ampelBlock = document.getElementById('ampelBlock');
   const originalParent = ampelBlock.parentElement;
-  const originalNext = ampelBlock.nextElementSibling; // controls block (to reinsert nicely)
+  const originalNext = ampelBlock.nextElementSibling;
 
   const lampG = document.getElementById('lampG');
   const lampY = document.getElementById('lampY');
@@ -461,13 +468,19 @@
 
   const thrYellow = document.getElementById('thrYellow');
   const thrRed = document.getElementById('thrRed');
+  const holdSec = document.getElementById('holdSec');
   const smooth = document.getElementById('smooth');
   const offset = document.getElementById('offset');
 
+  const sirenOn = document.getElementById('sirenOn');
+  const sirenVol = document.getElementById('sirenVol');
+
   const thrYVal = document.getElementById('thrYVal');
   const thrRVal = document.getElementById('thrRVal');
+  const holdVal = document.getElementById('holdVal');
   const smoothVal = document.getElementById('smoothVal');
   const offsetVal = document.getElementById('offsetVal');
+  const sirenVolVal = document.getElementById('sirenVolVal');
 
   const btnStart = document.getElementById('btnStart');
   const btnStop  = document.getElementById('btnStop');
@@ -487,6 +500,8 @@
   const sR = document.getElementById('sR');
   const t1 = document.getElementById('t1');
   const t2 = document.getElementById('t2');
+  const tHold = document.getElementById('tHold');
+  const holdInfo = document.getElementById('holdInfo');
 
   // Floating overlay
   const floatingHost = document.getElementById('floatingHost');
@@ -495,20 +510,27 @@
   const btnDock = document.getElementById('btnDock');
   const btnOnlyAmpel = document.getElementById('btnOnlyAmpel');
 
+  // Analysis
+  const analysisBox = document.getElementById('analysisBox');
+  const analysisMeta = document.getElementById('analysisMeta');
+  const pie = document.getElementById('pie');
+  const legend = document.getElementById('legend');
+  const sirenStats = document.getElementById('sirenStats');
+
   let onlyAmpelMode = false;
 
-  // PiP window state (Document PiP)
+  // PiP window
   let pipWin = null;
   let pipSupported = !!(window.documentPictureInPicture && window.documentPictureInPicture.requestWindow);
 
-  // --- Audio state
+  // --- Audio analysis
   let audioCtx = null;
   let analyser = null;
   let mediaStream = null;
   let rafId = null;
   let data = null;
 
-  // smoothing (EMA)
+  // smoothing
   let ema = null;
   let peak = -Infinity;
 
@@ -518,7 +540,21 @@
   let calSamples = [];
   let baseOffset = 0;
 
-  // --- Utils
+  // --- Delayed state change tracking
+  let displayedState = "green";        // what we show
+  let candidateState = "green";        // what raw thresholds suggest
+  let candidateSince = null;           // timestamp when candidate began (ms)
+
+  // --- Session stats (durations)
+  let sessionActive = false;
+  let sessionStartTs = 0;
+  let lastStateChangeTs = 0;
+  let timeIn = { green: 0, yellow: 0, red: 0 }; // ms
+  let sirenCount = 0;
+
+  // --- Siren limiting (avoid constant spam)
+  let sirenCooldownUntil = 0;
+
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
   function setLive(on){
@@ -538,8 +574,11 @@
     return {
       yellow: y,
       red: r,
+      hold: Number(holdSec.value),     // seconds
       smooth: Number(smooth.value),
       offset: Number(offset.value),
+      sirenOn: !!sirenOn.checked,
+      sirenVol: Number(sirenVol.value),
     };
   }
 
@@ -547,13 +586,17 @@
     const s = readSettings();
     thrYVal.textContent = s.yellow.toFixed(0);
     thrRVal.textContent = s.red.toFixed(0);
+    holdVal.textContent = s.hold.toFixed(1);
     smoothVal.textContent = s.smooth.toFixed(2);
     offsetVal.textContent = s.offset.toFixed(1);
+    sirenVolVal.textContent = s.sirenVol.toFixed(2);
 
     sY.textContent = s.yellow.toFixed(0);
     sR.textContent = s.red.toFixed(0);
     t1.textContent = `Gelb ≥ ${s.yellow.toFixed(0)} dB`;
     t2.textContent = `Rot ≥ ${s.red.toFixed(0)} dB`;
+    tHold.textContent = `Wechsel: ${s.hold.toFixed(1)}s stabil`;
+    holdInfo.textContent = s.hold.toFixed(1);
   }
 
   function setLights(state){
@@ -568,18 +611,21 @@
 
   function storeSettings(){
     const s = readSettings();
-    localStorage.setItem('noise-traffic-light-settings', JSON.stringify({ ...s, baseOffset }));
+    localStorage.setItem('noise-traffic-light-settings-v2', JSON.stringify({ ...s, baseOffset }));
   }
 
   function loadSettings(){
-    const raw = localStorage.getItem('noise-traffic-light-settings');
+    const raw = localStorage.getItem('noise-traffic-light-settings-v2');
     if(!raw) return;
     try{
       const s = JSON.parse(raw);
       if(typeof s.yellow === 'number') thrYellow.value = String(s.yellow);
       if(typeof s.red === 'number') thrRed.value = String(s.red);
+      if(typeof s.hold === 'number') holdSec.value = String(s.hold);
       if(typeof s.smooth === 'number') smooth.value = String(s.smooth);
       if(typeof s.offset === 'number') offset.value = String(s.offset);
+      if(typeof s.sirenOn === 'boolean') sirenOn.checked = s.sirenOn;
+      if(typeof s.sirenVol === 'number') sirenVol.value = String(s.sirenVol);
       if(typeof s.baseOffset === 'number') baseOffset = s.baseOffset;
     }catch{}
     syncUI();
@@ -588,19 +634,22 @@
   function resetSettings(){
     thrYellow.value = "60";
     thrRed.value = "75";
+    holdSec.value = "5";
     smooth.value = "0.18";
     offset.value = "0";
+    sirenOn.checked = false;
+    sirenVol.value = "0.35";
     baseOffset = 0;
     syncUI();
     storeSettings();
   }
 
+  // Convert RMS amplitude to "dB" (relative)
   function rmsToDb(rms){
     const eps = 1e-8;
     const db = 20 * Math.log10(Math.max(rms, eps));
     return db + 90;
   }
-
   function computeRms(floatTimeData){
     let sum = 0;
     for (let i=0;i<floatTimeData.length;i++){
@@ -608,6 +657,54 @@
       sum += v*v;
     }
     return Math.sqrt(sum / floatTimeData.length);
+  }
+
+  // --- Delayed switching
+  function rawStateFromDb(db, s){
+    if(db >= s.red) return "red";
+    if(db >= s.yellow) return "yellow";
+    return "green";
+  }
+
+  function commitState(newState, now){
+    if(newState === displayedState) return;
+
+    // accumulate time spent in previous state
+    if(sessionActive){
+      const dt = now - lastStateChangeTs;
+      timeIn[displayedState] += Math.max(0, dt);
+      lastStateChangeTs = now;
+    }
+
+    displayedState = newState;
+    setLights(displayedState);
+  }
+
+  // --- Siren (short "wee-woo" sweep)
+  function playSiren(volume = 0.35){
+    try{
+      // Need a user gesture at least once; start button provides that.
+      if(!audioCtx) return;
+      const now = audioCtx.currentTime;
+
+      const gain = audioCtx.createGain();
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, volume), now + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+
+      const osc = audioCtx.createOscillator();
+      osc.type = "sine";
+      // sweep up and down
+      osc.frequency.setValueAtTime(650, now);
+      osc.frequency.linearRampToValueAtTime(1050, now + 0.14);
+      osc.frequency.linearRampToValueAtTime(650, now + 0.28);
+
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(now);
+      osc.stop(now + 0.34);
+    }catch(e){
+      console.warn("Siren failed:", e);
+    }
   }
 
   function update(){
@@ -625,17 +722,13 @@
 
     if(ema > peak) peak = ema;
 
-    let state = "green";
-    if(ema >= s.red) state = "red";
-    else if(ema >= s.yellow) state = "yellow";
-    setLights(state);
-
     dbVal.textContent = ema.toFixed(1);
     peakVal.textContent = isFinite(peak) ? peak.toFixed(1) : "—";
 
     const pct = clamp(((ema - 30) / (110 - 30)) * 100, 0, 100);
     fill.style.width = pct.toFixed(1) + "%";
 
+    // calibration capture
     if(calibrating){
       calSamples.push(ema);
       if(performance.now() - calStart >= 10_000){
@@ -648,11 +741,47 @@
       }
     }
 
+    // delayed state logic
+    const nowMs = performance.now();
+    const raw = rawStateFromDb(ema, s);
+
+    if(raw !== candidateState){
+      candidateState = raw;
+      candidateSince = nowMs;
+    }
+
+    // If candidate differs from current, wait until stable for hold seconds
+    if(candidateState !== displayedState){
+      const holdMs = s.hold * 1000;
+      const stableFor = (candidateSince == null) ? 0 : (nowMs - candidateSince);
+      if(stableFor >= holdMs){
+        commitState(candidateState, nowMs);
+      }
+    } else {
+      // same as displayed; reset candidate timer to avoid drift
+      candidateSince = nowMs;
+    }
+
+    // Siren when "double red" (>= 2x red threshold)
+    // cooldown to avoid constant spam
+    const doubleRed = ema >= (2 * s.red);
+    if(sessionActive && s.sirenOn && doubleRed){
+      if(nowMs >= sirenCooldownUntil){
+        playSiren(s.sirenVol);
+        sirenCount += 1;
+        sirenCooldownUntil = nowMs + 2000; // 2s cooldown
+      }
+    }
+
     rafId = requestAnimationFrame(update);
   }
 
   async function start(){
     try{
+      analysisBox.classList.remove('show'); // hide old analysis on new start
+      legend.innerHTML = "";
+      sirenStats.textContent = "—";
+
       mediaStream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false }
       });
@@ -663,12 +792,26 @@
       analyser = audioCtx.createAnalyser();
       analyser.fftSize = 2048;
       analyser.smoothingTimeConstant = 0;
-
       src.connect(analyser);
+
       data = new Float32Array(analyser.fftSize);
 
       ema = null;
       peak = -Infinity;
+
+      // reset states
+      displayedState = "green";
+      candidateState = "green";
+      candidateSince = performance.now();
+      setLights("green");
+
+      // session stats
+      sessionActive = true;
+      sessionStartTs = performance.now();
+      lastStateChangeTs = sessionStartTs;
+      timeIn = { green: 0, yellow: 0, red: 0 };
+      sirenCount = 0;
+      sirenCooldownUntil = 0;
 
       setLive(true);
       update();
@@ -680,6 +823,15 @@
   }
 
   function stop(){
+    // end session timing
+    const now = performance.now();
+    if(sessionActive){
+      // add time for current displayedState
+      timeIn[displayedState] += Math.max(0, now - lastStateChangeTs);
+    }
+    sessionActive = false;
+
+    // stop audio loop
     if(rafId) cancelAnimationFrame(rafId);
     rafId = null;
 
@@ -695,11 +847,16 @@
     data = null;
 
     setLive(false);
-    setLights("green");
+
+    // show analysis
+    renderAnalysis(timeIn, now - sessionStartTs, sirenCount);
+
+    // reset readouts
     dbVal.textContent = "--";
     fill.style.width = "0%";
-    stateText.textContent = "—";
     peakVal.textContent = "—";
+    stateText.textContent = "—";
+    setLights("green");
   }
 
   function calibrate(){
@@ -710,27 +867,129 @@
     alert("Kalibrierung startet jetzt für 10 Sekunden.\nBitte in dieser Zeit „typische Ruhe“ im Raum herstellen.");
   }
 
-  // --- Floating overlay logic
-  function isDocked(){
-    return ampelBlock.parentElement === originalParent;
+  // --- Analysis rendering (pie chart)
+  function msToNice(ms){
+    const s = Math.round(ms / 1000);
+    const m = Math.floor(s / 60);
+    const r = s % 60;
+    if(m <= 0) return `${r}s`;
+    return `${m}m ${String(r).padStart(2,'0')}s`;
   }
+
+  function drawPie(canvas, parts){
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0,0,W,H);
+
+    // background
+    ctx.fillStyle = '#070c1b';
+    ctx.fillRect(0,0,W,H);
+
+    const total = parts.reduce((a,p)=>a+p.value,0) || 1;
+
+    const cx = Math.floor(W*0.33);
+    const cy = Math.floor(H*0.52);
+    const r  = Math.floor(Math.min(W,H)*0.33);
+
+    // title
+    ctx.fillStyle = '#eaf0ff';
+    ctx.font = '700 26px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
+    ctx.fillText('Phasen-Verteilung', 28, 48);
+
+    // pie
+    let ang = -Math.PI/2;
+    parts.forEach(p => {
+      const slice = (p.value / total) * (Math.PI*2);
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, ang, ang + slice);
+      ctx.closePath();
+      ctx.fillStyle = p.color;
+      ctx.fill();
+      ang += slice;
+    });
+
+    // donut hole
+    ctx.beginPath();
+    ctx.arc(cx, cy, Math.floor(r*0.55), 0, Math.PI*2);
+    ctx.fillStyle = '#070c1b';
+    ctx.fill();
+
+    // center text (total)
+    ctx.fillStyle = '#eaf0ff';
+    ctx.font = '700 22px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('Gesamt', cx, cy-8);
+    ctx.font = '600 20px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
+    ctx.fillStyle = '#b9c6ffcc';
+    ctx.fillText(msToNice(total), cx, cy+22);
+    ctx.textAlign = 'left';
+
+    // right-side numbers
+    const x0 = Math.floor(W*0.62);
+    let y0 = 120;
+    ctx.font = '600 18px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
+    ctx.fillStyle = '#eaf0ff';
+    ctx.fillText('Dauer pro Phase', x0, 90);
+
+    ctx.font = '500 16px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
+    parts.forEach(p => {
+      const pct = Math.round((p.value/total)*100);
+      // swatch
+      ctx.fillStyle = p.color;
+      ctx.fillRect(x0, y0-14, 14, 14);
+
+      // text
+      ctx.fillStyle = '#b9c6ffcc';
+      ctx.fillText(`${p.label}: ${msToNice(p.value)}  (${pct}%)`, x0 + 22, y0-2);
+      y0 += 34;
+    });
+  }
+
+  function renderAnalysis(timeIn, totalMs, sirenCount){
+    const parts = [
+      { key:'green', label:'Grün', value: timeIn.green, color: '#30d158' },
+      { key:'yellow', label:'Gelb', value: timeIn.yellow, color: '#ffd60a' },
+      { key:'red', label:'Rot', value: timeIn.red, color: '#ff453a' },
+    ];
+
+    analysisMeta.textContent = `Gesamtdauer: ${msToNice(totalMs)}`;
+    drawPie(pie, parts);
+
+    legend.innerHTML = "";
+    parts.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'legendItem';
+      row.innerHTML = `
+        <div class="leftLegend">
+          <span class="swatch" style="background:${p.color}"></span>
+          <span>${p.label}</span>
+        </div>
+        <div>${msToNice(p.value)}</div>
+      `;
+      legend.appendChild(row);
+    });
+
+    sirenStats.textContent = `Sirene ausgelöst: ${sirenCount}× (nur wenn aktiviert und Pegel ≥ 2× Rot).`;
+
+    analysisBox.classList.add('show');
+    // scroll into view on smaller screens
+    analysisBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // --- Floating overlay logic
+  function isDocked(){ return ampelBlock.parentElement === originalParent; }
 
   function undockToFloating(){
     if(!isDocked()) return;
-    // If currently in PiP, close PiP first
     if(pipWin) closePip();
-
     floatingBody.appendChild(ampelBlock);
     floatingHost.classList.add('show');
     btnFloat.textContent = "🪟 Ampel ist gelöst";
   }
-
   function dockBack(){
     if(isDocked()) return;
-    // If in PiP, close PiP first
     if(pipWin) closePip();
-
-    // reinsert before the controls block (originalNext points to controls)
     originalParent.insertBefore(ampelBlock, originalNext);
     floatingHost.classList.remove('show');
     floatingHost.classList.remove('onlyAmpel');
@@ -741,23 +1000,16 @@
 
   // drag floating window
   (function setupDrag(){
-    let dragging = false;
-    let startX = 0, startY = 0, startLeft = 0, startTop = 0;
-
+    let dragging = false, startX=0, startY=0, startLeft=0, startTop=0;
     floatingBar.addEventListener('pointerdown', (e) => {
-      // avoid dragging when clicking buttons
       const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
-      if(tag === "button") return;
-
+      if(tag === "button" || tag === "input") return;
       dragging = true;
       floatingBar.setPointerCapture(e.pointerId);
-      startX = e.clientX;
-      startY = e.clientY;
+      startX = e.clientX; startY = e.clientY;
       const rect = floatingHost.getBoundingClientRect();
-      startLeft = rect.left;
-      startTop = rect.top;
+      startLeft = rect.left; startTop = rect.top;
     });
-
     floatingBar.addEventListener('pointermove', (e) => {
       if(!dragging) return;
       const dx = e.clientX - startX;
@@ -769,9 +1021,8 @@
       floatingHost.style.right = "auto";
       floatingHost.style.bottom = "auto";
     });
-
-    floatingBar.addEventListener('pointerup', () => { dragging = false; });
-    floatingBar.addEventListener('pointercancel', () => { dragging = false; });
+    floatingBar.addEventListener('pointerup', () => dragging = false);
+    floatingBar.addEventListener('pointercancel', () => dragging = false);
   })();
 
   btnOnlyAmpel.addEventListener('click', () => {
@@ -779,74 +1030,53 @@
     floatingHost.classList.toggle('onlyAmpel', onlyAmpelMode);
     btnOnlyAmpel.textContent = onlyAmpelMode ? "Mit Anzeige" : "Nur Ampel";
   });
-
   btnDock.addEventListener('click', dockBack);
-  btnFloat.addEventListener('click', () => {
-    if(isDocked()) undockToFloating();
-    else dockBack();
-  });
+  btnFloat.addEventListener('click', () => isDocked() ? undockToFloating() : dockBack());
 
-  // --- Document Picture-in-Picture (browserabhängig)
+  // --- Document Picture-in-Picture
   async function openPip(){
     if(!pipSupported){
-      alert("Mini-Fenster wird in diesem Browser nicht unterstützt.\nNutze stattdessen „Ampel lösen“.");
+      alert("Mini-Fenster wird in diesem Browser/Modus nicht unterstützt.\nNutze stattdessen „Ampel lösen“.");
       return;
     }
-    // Ensure we have the ampel block in a stable place (either docked or floating is ok)
-    // We'll move the actual node into the PiP window so it stays live.
     try{
       pipWin = await window.documentPictureInPicture.requestWindow({ width: 360, height: 420 });
 
-      // Basic styles inside PiP window
       pipWin.document.head.innerHTML = `
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Lärmampel</title>
-        <style>
-          body{ margin:0; background:#070b18; display:flex; align-items:center; justify-content:center; height:100vh; }
-          /* inherit the original page CSS by cloning needed styles */
-        </style>
+        <style>body{ margin:0; background:#070b18; display:flex; align-items:center; justify-content:center; height:100vh; }</style>
       `;
-
-      // Clone ALL stylesheets (simple approach: copy current <style> tags)
-      document.querySelectorAll('style').forEach(st => {
-        pipWin.document.head.appendChild(st.cloneNode(true));
-      });
+      document.querySelectorAll('style').forEach(st => pipWin.document.head.appendChild(st.cloneNode(true)));
 
       const holder = pipWin.document.createElement('div');
       holder.style.padding = '10px';
-      pipWin.document.body.appendChild(holder);
-
-      // If currently docked, undock to floatingBody first (so original page layout doesn't jump too much)
-      // Not strictly required, but keeps things tidy.
-      if(isDocked()){
-        undockToFloating();
-      }
-
-      holder.appendChild(ampelBlock);
-
-      // Make PiP feel "ampel-only"
       holder.style.width = '100%';
       holder.style.display = 'flex';
       holder.style.justifyContent = 'center';
       holder.style.alignItems = 'center';
-      // Hide readout in PiP? You can keep it; here we keep it compact by default:
-      // (You can comment next line out if you want the numbers in PiP)
-      ampelBlock.querySelector('.readout').style.display = 'none';
+      pipWin.document.body.appendChild(holder);
+
+      // keep main layout stable
+      if(isDocked()) undockToFloating();
+
+      holder.appendChild(ampelBlock);
+
+      // compact: hide numeric readout in PiP
+      const ro = ampelBlock.querySelector('.readout');
+      if(ro) ro.style.display = 'none';
 
       pipWin.addEventListener('pagehide', () => {
-        // If the user closes PiP window, restore ampel block back to floating overlay (or dock)
         pipWin = null;
-        // restore readout display
-        ampelBlock.querySelector('.readout').style.display = '';
-        // If floatingHost exists, keep it there
-        if(!floatingHost.classList.contains('show')) floatingHost.classList.add('show');
+        if(ro) ro.style.display = '';
+        floatingHost.classList.add('show');
         floatingBody.appendChild(ampelBlock);
       });
     }catch(err){
       console.error(err);
       pipWin = null;
-      alert("Mini-Fenster konnte nicht geöffnet werden. Nutze „Ampel lösen“ als Alternative.");
+      alert("Mini-Fenster konnte nicht geöffnet werden. Nutze „Ampel lösen“.");
     }
   }
 
@@ -854,20 +1084,15 @@
     if(!pipWin) return;
     try{ pipWin.close(); }catch{}
     pipWin = null;
-    // Restore readout
     const ro = ampelBlock.querySelector('.readout');
     if(ro) ro.style.display = '';
-    // Put back into floating (safe default)
     floatingHost.classList.add('show');
     floatingBody.appendChild(ampelBlock);
   }
 
-  btnPip.addEventListener('click', () => {
-    if(pipWin) closePip();
-    else openPip();
-  });
+  btnPip.addEventListener('click', () => pipWin ? closePip() : openPip());
 
-  // --- Slider events
+  // --- Slider / inputs
   thrYellow.addEventListener('input', () => {
     if(Number(thrRed.value) <= Number(thrYellow.value)) thrRed.value = String(Number(thrYellow.value) + 1);
     syncUI();
@@ -876,8 +1101,11 @@
     if(Number(thrRed.value) <= Number(thrYellow.value)) thrYellow.value = String(Number(thrRed.value) - 1);
     syncUI();
   });
+  holdSec.addEventListener('input', syncUI);
   smooth.addEventListener('input', syncUI);
   offset.addEventListener('input', syncUI);
+  sirenOn.addEventListener('change', syncUI);
+  sirenVol.addEventListener('input', syncUI);
 
   // --- Buttons
   btnStart.addEventListener('click', start);
@@ -891,12 +1119,11 @@
   // init
   loadSettings();
   syncUI();
-  setLights("green");
   setLive(false);
+  setLights("green");
 
-  // Improve UX: show hint about PiP availability
   if(!pipSupported){
-    btnPip.title = "Mini-Fenster wird in diesem Browser nicht unterstützt. Nutze „Ampel lösen“.";
+    btnPip.title = "Mini-Fenster nicht verfügbar. Nutze „Ampel lösen“.";
   }
 })();
 </script>
