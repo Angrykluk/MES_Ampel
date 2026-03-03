@@ -4,52 +4,66 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Lärmampel – Klassenraum</title>
+
   <style>
     :root{
-      --bg1:#0b1220;
-      --bg2:#101a33;
-      --stroke:#ffffff1f;
-      --text:#eaf0ff;
-      --muted:#b9c6ffcc;
-      --good:#30d158;
-      --warn:#ffd60a;
-      --bad:#ff453a;
-      --accent:#7c5cff;
-      --shadow: 0 12px 40px rgba(0,0,0,.35);
+      --bg1:#f4f8ff;
+      --bg2:#eaf2ff;
+      --card:#ffffff;
+      --stroke: rgba(0,0,0,.10);
+      --text:#0b1220;
+      --muted: rgba(0,0,0,.65);
+
+      --good:#2ecc71;
+      --warn:#f1c40f;
+      --bad:#e74c3c;
+      --accent:#4c6fff;
+
+      --shadow: 0 10px 30px rgba(0,0,0,.08);
       --radius: 18px;
     }
-    *{box-sizing:border-box}
+
+    *{ box-sizing:border-box; }
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      font-family: "Comic Sans MS", "Comic Neue", "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
       color:var(--text);
       min-height:100vh;
       background:
-        radial-gradient(1000px 600px at 10% 10%, #2a3cff33, transparent 60%),
-        radial-gradient(900px 500px at 90% 20%, #7c5cff26, transparent 60%),
+        radial-gradient(1000px 700px at 12% 8%, #cfe1ff, transparent 65%),
+        radial-gradient(900px 600px at 85% 15%, #e1d7ff, transparent 65%),
         linear-gradient(160deg, var(--bg1), var(--bg2));
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:28px;
+      padding:22px;
     }
-    .wrap{
+
+    .page{
       width:min(1100px, 100%);
+      margin:0 auto;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+
+    .topGrid{
       display:grid;
       grid-template-columns: 420px 1fr;
-      gap:22px;
+      gap:18px;
     }
-    @media (max-width: 900px){ .wrap{grid-template-columns: 1fr;} }
+    @media (max-width: 900px){
+      .topGrid{ grid-template-columns: 1fr; }
+    }
 
     .card{
-      background: linear-gradient(180deg, #0f1a34cc, #0b142bcc);
-      border:1px solid var(--stroke);
+      background: var(--card);
+      border: 1px solid var(--stroke);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(10px);
       overflow:hidden;
     }
-    header{ padding:18px 18px 0 18px; }
+
+    header{
+      padding:16px 18px 0 18px;
+    }
     h1{
       margin:0;
       font-size:20px;
@@ -59,19 +73,21 @@
       justify-content:space-between;
       gap:10px;
     }
+
     .pill{
       font-size:12px;
-      padding:6px 10px;
+      padding:7px 10px;
       border-radius:999px;
       border:1px solid var(--stroke);
       color: var(--muted);
       display:inline-flex;
       align-items:center;
       gap:8px;
+      background: rgba(255,255,255,.6);
     }
-    .dot{ width:8px;height:8px;border-radius:50%; background:#999; box-shadow: 0 0 0 3px #ffffff10; }
-    .dot.live{ background: var(--good); box-shadow: 0 0 0 3px #30d15833, 0 0 18px #30d15866; }
-    .dot.off{ background:#6b7280; }
+    .dot{ width:9px;height:9px;border-radius:50%; background:#999; box-shadow: 0 0 0 3px rgba(0,0,0,.06); }
+    .dot.live{ background: var(--good); box-shadow: 0 0 0 3px rgba(46,204,113,.25), 0 0 18px rgba(46,204,113,.25); }
+    .dot.off{ background:#888; }
 
     /* Ampel */
     .ampelArea{
@@ -86,53 +102,45 @@
       padding:16px 14px;
       border-radius:26px;
       border:1px solid var(--stroke);
-      background: linear-gradient(180deg, #0b1430, #060b1a);
-      box-shadow: inset 0 0 0 1px #00000055, 0 20px 60px #00000066;
+      background: linear-gradient(180deg, #f6f8ff, #eef3ff);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,.04), 0 20px 40px rgba(0,0,0,.06);
       position:relative;
-    }
-    .ampel:before{
-      content:"";
-      position:absolute;
-      inset:10px;
-      border-radius:20px;
-      background: radial-gradient(200px 140px at 50% 0%, #ffffff1a, transparent 60%);
-      pointer-events:none;
     }
     .lamp{
       width:110px;height:110px;border-radius:50%;
       margin:10px auto;
-      background: radial-gradient(circle at 35% 30%, #ffffff22, transparent 45%),
-                  radial-gradient(circle at 50% 60%, #00000066, transparent 58%),
-                  #1f2937;
-      border: 1px solid #ffffff22;
-      box-shadow: inset 0 -18px 30px #00000066, 0 10px 24px #00000055;
+      background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.8), transparent 45%),
+                  radial-gradient(circle at 50% 60%, rgba(0,0,0,.20), transparent 58%),
+                  #cbd5e1;
+      border: 1px solid rgba(0,0,0,.10);
+      box-shadow: inset 0 -18px 30px rgba(0,0,0,.10), 0 10px 20px rgba(0,0,0,.07);
       position:relative;
       display:flex; align-items:center; justify-content:center;
+      color: transparent;
     }
     .lamp.on{
-      box-shadow: inset 0 -18px 30px #00000055, 0 10px 24px #00000055, 0 0 38px currentColor;
-      border-color: #ffffff3a;
+      border-color: rgba(0,0,0,.12);
+      box-shadow: inset 0 -18px 30px rgba(0,0,0,.08), 0 10px 20px rgba(0,0,0,.07), 0 0 26px currentColor;
     }
     .lamp.good{ color: var(--good); background:
-      radial-gradient(circle at 35% 30%, #ffffff55, transparent 45%),
-      radial-gradient(circle at 50% 60%, #00000044, transparent 58%),
-      radial-gradient(circle at 50% 50%, #30d158cc, #1b6b35 70%);
+      radial-gradient(circle at 35% 30%, rgba(255,255,255,.85), transparent 45%),
+      radial-gradient(circle at 50% 60%, rgba(0,0,0,.14), transparent 58%),
+      radial-gradient(circle at 50% 50%, rgba(46,204,113,.9), rgba(22,120,70,.92) 70%);
     }
     .lamp.warn{ color: var(--warn); background:
-      radial-gradient(circle at 35% 30%, #ffffff55, transparent 45%),
-      radial-gradient(circle at 50% 60%, #00000044, transparent 58%),
-      radial-gradient(circle at 50% 50%, #ffd60acc, #8a6b00 70%);
+      radial-gradient(circle at 35% 30%, rgba(255,255,255,.85), transparent 45%),
+      radial-gradient(circle at 50% 60%, rgba(0,0,0,.14), transparent 58%),
+      radial-gradient(circle at 50% 50%, rgba(241,196,15,.95), rgba(140,112,0,.95) 70%);
     }
     .lamp.bad{ color: var(--bad); background:
-      radial-gradient(circle at 35% 30%, #ffffff55, transparent 45%),
-      radial-gradient(circle at 50% 60%, #00000044, transparent 58%),
-      radial-gradient(circle at 50% 50%, #ff453acc, #7a1711 70%);
+      radial-gradient(circle at 35% 30%, rgba(255,255,255,.85), transparent 45%),
+      radial-gradient(circle at 50% 60%, rgba(0,0,0,.14), transparent 58%),
+      radial-gradient(circle at 50% 50%, rgba(231,76,60,.95), rgba(120,25,18,.95) 70%);
     }
 
-    /* Smiley nur bei aktiver Lampe */
     .emoji{
       font-size:46px;
-      filter: drop-shadow(0 10px 12px rgba(0,0,0,.45));
+      filter: drop-shadow(0 10px 12px rgba(0,0,0,.18));
       opacity:0;
       transform: translateY(2px) scale(.98);
       transition: opacity .18s ease, transform .18s ease;
@@ -145,24 +153,24 @@
     }
     #emojiR{ transform-origin: 50% 55%; will-change: transform; }
 
-    .readout{ flex:1; min-width: 220px; }
-    .big{ font-size:46px; line-height:1; margin:0 0 8px 0; letter-spacing:-.8px; }
+    .readout{ flex:1; min-width: 240px; }
+    .big{
+      font-size:46px; line-height:1; margin:0 0 8px 0; letter-spacing:-.8px;
+    }
     .label{ margin:0; color:var(--muted); font-size:13px; }
     .bar{
       margin-top:14px;
       height:14px;
       border-radius:999px;
       border:1px solid var(--stroke);
-      background: #0b1225;
+      background: rgba(0,0,0,.06);
       overflow:hidden;
-      position:relative;
     }
     .fill{
       height:100%;
       width:0%;
       border-radius:999px;
       background: linear-gradient(90deg, var(--good), var(--warn), var(--bad));
-      filter:saturate(1.2);
     }
     .ticks{
       display:flex;
@@ -175,24 +183,25 @@
     }
 
     .controls{
-      padding:18px;
+      padding:16px 18px;
       border-top:1px solid var(--stroke);
       display:grid;
       grid-template-columns: 1fr 1fr;
-      gap:14px 14px;
+      gap:12px;
     }
     @media (max-width: 900px){ .controls{ grid-template-columns: 1fr; } }
+
     .row{
       padding:12px;
       border:1px solid var(--stroke);
       border-radius:14px;
-      background: #0a1227aa;
+      background: rgba(76,111,255,.04);
     }
     .row h3{
       margin:0 0 8px 0;
       font-size:13px;
       color: var(--muted);
-      font-weight:600;
+      font-weight:800;
       letter-spacing:.2px;
     }
     input[type="range"]{ width:100%; accent-color: var(--accent); }
@@ -200,7 +209,7 @@
     .vals span{ white-space:nowrap; }
 
     .btns{
-      padding:18px;
+      padding:16px 18px;
       display:flex;
       gap:10px;
       flex-wrap:wrap;
@@ -209,40 +218,45 @@
     button{
       appearance:none;
       border:1px solid var(--stroke);
-      background: linear-gradient(180deg, #1a2a5a, #0f1a36);
+      background: linear-gradient(180deg, #ffffff, #f3f6ff);
       color:var(--text);
       padding:10px 12px;
       border-radius:12px;
       cursor:pointer;
-      box-shadow: 0 10px 20px #00000033;
-      font-weight:600;
+      box-shadow: 0 8px 16px rgba(0,0,0,.06);
+      font-weight:900;
       letter-spacing:.2px;
+    }
+    button.secondary{
+      background: linear-gradient(180deg, #f8fbff, #ffffff);
+      color: rgba(0,0,0,.72);
     }
     button:hover{ transform: translateY(-1px); }
     button:active{ transform: translateY(0px); }
-    button.secondary{ background: linear-gradient(180deg, #0f1a36, #0b1225); color:var(--muted); }
     button:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
-
-    .note{
-      padding:16px 18px 18px 18px;
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.35;
-    }
 
     .panel{ padding:18px; }
     .panel h2{ margin:0 0 10px 0; font-size:16px; }
-    .grid{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
     @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
     .stat{
       padding:14px;
       border:1px solid var(--stroke);
       border-radius:14px;
-      background:#0a1227aa;
+      background: rgba(0,0,0,.03);
     }
-    .stat .k{ color:var(--muted); font-size:12px; margin:0 0 6px 0; }
-    .stat .v{ font-size:20px; margin:0; letter-spacing:-.3px; }
-    .footer{ padding:12px 18px 18px 18px; color:var(--muted); font-size:12px; }
+    .stat .k{ color:var(--muted); font-size:12px; margin:0 0 6px 0; font-weight:900; }
+    .stat .v{ font-size:20px; margin:0; letter-spacing:-.2px; font-weight:900; }
+
+    .footer{
+      padding:12px 18px 18px 18px;
+      color:var(--muted);
+      font-size:12px;
+    }
 
     /* Floating overlay */
     .floatingHost{
@@ -254,8 +268,8 @@
       max-width: calc(100vw - 48px);
       border-radius: 16px;
       border: 1px solid var(--stroke);
-      background: linear-gradient(180deg, #0f1a34ee, #0b142bee);
-      box-shadow: 0 20px 70px rgba(0,0,0,.55);
+      background: rgba(255,255,255,.94);
+      box-shadow: 0 18px 60px rgba(0,0,0,.18);
       overflow:hidden;
       display:none;
       user-select:none;
@@ -269,11 +283,11 @@
       gap:10px;
       cursor:grab;
       border-bottom:1px solid var(--stroke);
-      background: radial-gradient(700px 160px at 30% 0%, #7c5cff22, transparent 60%);
+      background: radial-gradient(700px 160px at 30% 0%, rgba(76,111,255,.15), transparent 60%);
     }
     .floatingBar:active{ cursor:grabbing; }
     .floatingTitle{
-      font-weight:700;
+      font-weight:1000;
       letter-spacing:.2px;
       font-size:13px;
       color:var(--text);
@@ -288,93 +302,63 @@
     .onlyAmpel .ampelArea{ padding:0; }
     .onlyAmpel .ampel{ margin:0 auto; }
 
-    /* Auswertung */
-    .analysisBox{ padding:18px; border-top:1px solid var(--stroke); display:none; }
-    .analysisBox.show{ display:block; }
-
+    /* Auswertung: volle Breite unten */
+    .analysisCard{
+      padding:18px;
+    }
     .analysisHead{
-      display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;
-    }
-    .analysisHead h3{ margin:0; font-size:14px; color:var(--text); }
-    .analysisMeta{ color:var(--muted); font-size:12px; }
-
-    .analysisGrid{
-      display:grid;
-      grid-template-columns: 1.25fr 0.75fr;
-      gap:14px;
-      align-items:stretch;
-    }
-    @media (max-width: 900px){ .analysisGrid{ grid-template-columns: 1fr; } }
-
-    canvas{ width:100%; height:auto; border-radius:14px; border:1px solid var(--stroke); background:#070c1b; }
-
-    .resultCard{
-      border:1px solid var(--stroke);
-      border-radius:14px;
-      background:#0a1227aa;
-      padding:14px;
       display:flex;
-      flex-direction:column;
-      gap:10px;
-      min-height: 100%;
-    }
-    .badge{
-      display:flex;
-      align-items:center;
+      align-items:flex-start;
       justify-content:space-between;
-      gap:10px;
-      padding:12px;
-      border-radius:14px;
-      border:1px solid var(--stroke);
-      background: radial-gradient(500px 160px at 30% 0%, #7c5cff22, transparent 60%);
-    }
-    .bigEmoji{
-      font-size:44px;
-      filter: drop-shadow(0 10px 14px rgba(0,0,0,.45));
-      line-height:1;
-    }
-    .badgeText{
-      flex:1;
-      min-width:0;
-    }
-    .badgeText .title{
-      margin:0;
-      font-weight:800;
-      letter-spacing:.2px;
-      font-size:14px;
-    }
-    .badgeText .sub{
-      margin:6px 0 0 0;
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.35;
-    }
-
-    .summaryText{
-      width:100%;
-      border:1px solid var(--stroke);
-      border-radius:12px;
-      background:#070c1b;
-      color:var(--muted);
-      padding:10px;
-      font-size:12px;
-      line-height:1.35;
-      white-space:pre-wrap;
-      user-select:text;
-    }
-    .copyRow{
-      display:flex;
-      gap:10px;
-      align-items:center;
-      justify-content:space-between;
+      gap:12px;
       flex-wrap:wrap;
+      margin-bottom:12px;
     }
-    .copyHint{ color:var(--muted); font-size:12px; }
-    .legend{ margin-top:10px; display:grid; grid-template-columns: 1fr; gap:8px; }
-    .legendItem{ display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:12px; color:var(--muted); }
-    .swatch{ width:12px; height:12px; border-radius:3px; display:inline-block; margin-right:8px; border:1px solid #ffffff22; }
-    .leftLegend{ display:flex; align-items:center; gap:8px; }
-    .warnline{ margin-top:10px; font-size:12px; color:var(--muted); }
+    .analysisHead h3{
+      margin:0;
+      font-size:18px;
+      font-weight:1000;
+    }
+    .analysisMeta{
+      color:var(--muted);
+      font-size:13px;
+      font-weight:900;
+    }
+
+    .reportTools{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin: 10px 0 0 0;
+    }
+    .hint{
+      color:var(--muted);
+      font-size:13px;
+      font-weight:900;
+    }
+
+    /* Kinderfreundliche große Schrift in der Auswertung */
+    .bigKidText{
+      font-size:18px;
+      line-height:1.35;
+      font-weight:900;
+    }
+
+    .reportWrap{
+      margin-top:12px;
+      border:1px solid var(--stroke);
+      border-radius:16px;
+      overflow:hidden;
+      background:#fff;
+      box-shadow: 0 10px 26px rgba(0,0,0,.06);
+    }
+    canvas{
+      display:block;
+      width:100%;
+      height:auto;
+      background:#ffffff;
+    }
   </style>
 </head>
 
@@ -391,162 +375,164 @@
     <div id="floatingBody" class="floatingBody"></div>
   </div>
 
-  <div class="wrap">
-    <!-- LEFT -->
-    <section class="card">
-      <header>
-        <h1>
-          Lärmampel
-          <span class="pill"><span id="liveDot" class="dot off"></span><span id="liveText">Mikrofon aus</span></span>
-        </h1>
-      </header>
+  <div class="page">
+    <div class="topGrid">
+      <!-- LEFT -->
+      <section class="card">
+        <header>
+          <h1>
+            Lärmampel
+            <span class="pill"><span id="liveDot" class="dot off"></span><span id="liveText">Mikrofon aus</span></span>
+          </h1>
+        </header>
 
-      <div id="ampelBlock" class="ampelArea">
-        <div class="ampel" aria-label="Ampel">
-          <div id="lampG" class="lamp good on" title="Grün"><span class="emoji" aria-hidden="true">😄</span></div>
-          <div id="lampY" class="lamp warn" title="Gelb"><span class="emoji" aria-hidden="true">😐</span></div>
-          <div id="lampR" class="lamp bad" title="Rot">
-            <span id="emojiR" class="emoji" aria-hidden="true">😠</span>
+        <div id="ampelBlock" class="ampelArea">
+          <div class="ampel" aria-label="Ampel">
+            <div id="lampG" class="lamp good on" title="Grün"><span class="emoji" aria-hidden="true">😄</span></div>
+            <div id="lampY" class="lamp warn" title="Gelb"><span class="emoji" aria-hidden="true">😐</span></div>
+            <div id="lampR" class="lamp bad" title="Rot">
+              <span id="emojiR" class="emoji" aria-hidden="true">😠</span>
+            </div>
+          </div>
+
+          <div class="readout">
+            <p class="big"><span id="dbVal">--</span> <span style="font-size:18px;color:var(--muted);font-weight:900;">dB</span></p>
+            <p class="label">Gemessener Pegel (relativ, aus Mikrofon)</p>
+
+            <div class="bar" aria-label="Pegelanzeige"><div id="fill" class="fill"></div></div>
+            <div class="ticks">
+              <span>Leise</span>
+              <span id="t1">Gelb</span>
+              <span id="t2">Rot</span>
+              <span id="tHold">Wechsel: 5.0s stabil</span>
+            </div>
           </div>
         </div>
 
-        <div class="readout">
-          <p class="big"><span id="dbVal">--</span> <span style="font-size:18px;color:var(--muted)">dB</span></p>
-          <p class="label">Gemessener Pegel (relativ, aus Mikrofon)</p>
+        <div class="controls">
+          <div class="row">
+            <h3>Schwelle Gelb (ab … dB)</h3>
+            <input id="thrYellow" type="range" min="30" max="100" value="60" step="1" />
+            <div class="vals"><span>Grün</span><span><span id="thrYVal">60</span> dB</span></div>
+          </div>
 
-          <div class="bar" aria-label="Pegelanzeige"><div id="fill" class="fill"></div></div>
-          <div class="ticks">
-            <span>Leise</span>
-            <span id="t1">Gelb</span>
-            <span id="t2">Rot</span>
-            <span id="tHold">Wechsel: 5.0s stabil</span>
+          <div class="row">
+            <h3>Schwelle Rot (ab … dB)</h3>
+            <input id="thrRed" type="range" min="40" max="110" value="75" step="1" />
+            <div class="vals"><span>Gelb</span><span><span id="thrRVal">75</span> dB</span></div>
+          </div>
+
+          <div class="row">
+            <h3>Reaktions-Verzögerung (Farbwechsel)</h3>
+            <input id="holdSec" type="range" min="0" max="10" value="5" step="0.5" />
+            <div class="vals"><span>schnell</span><span><span id="holdVal">5.0</span> s</span></div>
+          </div>
+
+          <div class="row">
+            <h3>Glättung (ruhiger / reaktiver)</h3>
+            <input id="smooth" type="range" min="0.05" max="0.6" value="0.18" step="0.01" />
+            <div class="vals"><span>Reaktiver</span><span><span id="smoothVal">0.18</span></span></div>
+          </div>
+
+          <div class="row">
+            <h3>Kalibrierung (Offset)</h3>
+            <input id="offset" type="range" min="-25" max="25" value="0" step="0.5" />
+            <div class="vals"><span>leiser</span><span><span id="offsetVal">0</span> dB</span></div>
+          </div>
+
+          <div class="row">
+            <h3>Sirene (Rot + 5 dB länger als 10 Sekunden)</h3>
+            <label style="display:flex;gap:10px;align-items:center;color:var(--muted);font-size:13px;font-weight:900;">
+              <input id="sirenOn" type="checkbox" />
+              Sirene aktivieren
+            </label>
+            <div style="margin-top:10px;">
+              <input id="sirenVol" type="range" min="0" max="1" value="0.35" step="0.01" />
+              <div class="vals"><span>leise</span><span>Lautstärke: <span id="sirenVolVal">0.35</span></span></div>
+            </div>
+          </div>
+
+          <div class="row">
+            <h3>Bewertung (locker / normal / streng)</h3>
+            <input id="strictness" type="range" min="0" max="2" value="1" step="1" />
+            <div class="vals">
+              <span>locker</span>
+              <span><b id="strictnessLabel" style="color:var(--text)">normal</b></span>
+              <span>streng</span>
+            </div>
+            <div class="vals" style="margin-top:8px;">
+              <span style="white-space:normal;">Ändert, wie streng „gut/okay/zu laut“ bewertet wird.</span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="controls">
-        <div class="row">
-          <h3>Schwelle Gelb (ab … dB)</h3>
-          <input id="thrYellow" type="range" min="30" max="100" value="60" step="1" />
-          <div class="vals"><span>Grün</span><span><span id="thrYVal">60</span> dB</span></div>
+        <div class="btns">
+          <button id="btnStart">🎤 Start</button>
+          <button id="btnStop" class="secondary" disabled>⏹ Stop</button>
+          <button id="btnCal" class="secondary" disabled>🧪 Kalibrieren (10s)</button>
+
+          <button id="btnFloat" class="secondary">🪟 Ampel lösen</button>
+          <button id="btnPip" class="secondary" title="Edge (Chromium): Document Picture-in-Picture (wenn verfügbar)">📌 Mini-Fenster</button>
+
+          <button id="btnSave" class="secondary">💾 Einstellungen speichern</button>
+          <button id="btnLoad" class="secondary">↩️ Laden</button>
+          <button id="btnReset" class="secondary">♻️ Reset</button>
         </div>
 
-        <div class="row">
-          <h3>Schwelle Rot (ab … dB)</h3>
-          <input id="thrRed" type="range" min="40" max="110" value="75" step="1" />
-          <div class="vals"><span>Gelb</span><span><span id="thrRVal">75</span> dB</span></div>
+        <div class="footer">
+          Tipp: Für Beamer gern Vollbild (F11). Mini-Fenster klappt am besten über https (z.B. GitHub Pages).
         </div>
+      </section>
 
-        <div class="row">
-          <h3>Reaktions-Verzögerung (Farbwechsel)</h3>
-          <input id="holdSec" type="range" min="0" max="10" value="5" step="0.5" />
-          <div class="vals"><span>schnell</span><span><span id="holdVal">5.0</span> s</span></div>
-        </div>
-
-        <div class="row">
-          <h3>Glättung (ruhiger / reaktiver)</h3>
-          <input id="smooth" type="range" min="0.05" max="0.6" value="0.18" step="0.01" />
-          <div class="vals"><span>Reaktiver</span><span><span id="smoothVal">0.18</span></span></div>
-        </div>
-
-        <div class="row">
-          <h3>Kalibrierung (Offset)</h3>
-          <input id="offset" type="range" min="-25" max="25" value="0" step="0.5" />
-          <div class="vals"><span>leiser</span><span><span id="offsetVal">0</span> dB</span></div>
-        </div>
-
-        <div class="row">
-          <h3>Sirene (Rot + 5 dB länger als 10 Sekunden)</h3>
-          <label style="display:flex;gap:10px;align-items:center;color:var(--muted);font-size:12px;">
-            <input id="sirenOn" type="checkbox" />
-            Sirene aktivieren
-          </label>
-          <div style="margin-top:10px;">
-            <input id="sirenVol" type="range" min="0" max="1" value="0.35" step="0.01" />
-            <div class="vals"><span>leise</span><span>Lautstärke: <span id="sirenVolVal">0.35</span></span></div>
+      <!-- RIGHT -->
+      <section class="card">
+        <div class="panel">
+          <h2>Übersicht & Status</h2>
+          <div class="grid">
+            <div class="stat">
+              <p class="k">Aktuelle Ampel</p>
+              <p id="stateText" class="v">—</p>
+            </div>
+            <div class="stat">
+              <p class="k">Peak (seit Start)</p>
+              <p class="v"><span id="peakVal">—</span> dB</p>
+            </div>
+            <div class="stat">
+              <p class="k">Gelb / Rot Schwellen</p>
+              <p class="v"><span id="sY">60</span> / <span id="sR">75</span> dB</p>
+            </div>
+            <div class="stat">
+              <p class="k">Farbwechsel</p>
+              <p class="v" style="font-size:14px;line-height:1.35;color:var(--muted);font-weight:900;">
+                Wechsel erst nach <b><span id="holdInfo">5.0</span>s</b> stabiler Lautstärke.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
+    </div>
 
-      <div class="btns">
-        <button id="btnStart">🎤 Start</button>
-        <button id="btnStop" class="secondary" disabled>⏹ Stop</button>
-        <button id="btnCal" class="secondary" disabled>🧪 Kalibrieren (10s)</button>
-
-        <button id="btnFloat" class="secondary">🪟 Ampel lösen</button>
-        <button id="btnPip" class="secondary" title="Edge (Chromium): Document Picture-in-Picture (wenn verfügbar)">📌 Mini-Fenster</button>
-
-        <button id="btnSave" class="secondary">💾 Einstellungen speichern</button>
-        <button id="btnLoad" class="secondary">↩️ Laden</button>
-        <button id="btnReset" class="secondary">♻️ Reset</button>
-      </div>
-
-      <div class="analysisBox" id="analysisBox">
+    <!-- AUSWERTUNG: volle Breite unten -->
+    <section class="card" id="analysisCard" style="display:none;">
+      <div class="analysisCard">
         <div class="analysisHead">
-          <h3>Auswertung (letzte Session)</h3>
-          <div class="analysisMeta" id="analysisMeta">—</div>
-        </div>
-
-        <div class="analysisGrid">
           <div>
-            <canvas id="pie" width="900" height="520" aria-label="Tortendiagramm"></canvas>
-            <div class="legend" id="legend"></div>
-            <div class="warnline" id="sirenStats">—</div>
+            <h3>Auswertung für die Klasse</h3>
+            <div class="analysisMeta" id="analysisMeta">—</div>
           </div>
-
-          <div class="resultCard">
-            <div class="badge">
-              <div class="bigEmoji" id="resultEmoji">🙂</div>
-              <div class="badgeText">
-                <p class="title" id="resultTitle">—</p>
-                <p class="sub" id="resultSentence">—</p>
-              </div>
-            </div>
-
-            <div class="copyRow">
-              <button id="btnCopySummary" class="secondary" type="button">📋 Kopieren</button>
-              <span class="copyHint" id="copyHint">—</span>
-            </div>
-
-            <div class="summaryText" id="summaryText" aria-label="Zusammenfassung">—</div>
+          <div class="reportTools">
+            <button id="btnCopyImage" type="button">📋 Alles als Bild kopieren</button>
+            <button id="btnDownloadPng" class="secondary" type="button">⬇️ PNG herunterladen</button>
+            <span class="hint" id="copyHint">—</span>
           </div>
         </div>
-      </div>
 
-      <div class="note">
-        <b>Hinweis:</b> Dezibel sind hier „relativ“. Für den Unterricht zählt die klare Ampel-Logik.
-        Die Verzögerung sorgt dafür, dass die Ampel erst bei <b>stabilem Zustand</b> umschaltet.
-      </div>
-    </section>
+        <div class="bigKidText" id="kidText" style="margin-bottom:12px;">—</div>
 
-    <!-- RIGHT -->
-    <section class="card">
-      <div class="panel">
-        <h2>Übersicht & Status</h2>
-        <div class="grid">
-          <div class="stat">
-            <p class="k">Aktuelle Ampel</p>
-            <p id="stateText" class="v">—</p>
-          </div>
-          <div class="stat">
-            <p class="k">Peak (seit Start)</p>
-            <p class="v"><span id="peakVal">—</span> dB</p>
-          </div>
-          <div class="stat">
-            <p class="k">Gelb / Rot Schwellen</p>
-            <p class="v"><span id="sY">60</span> / <span id="sR">75</span> dB</p>
-          </div>
-          <div class="stat">
-            <p class="k">Farbwechsel</p>
-            <p class="v" style="font-size:14px;line-height:1.35;color:var(--muted)">
-              Wechsel erst nach <b><span id="holdInfo">5.0</span>s</b> stabiler Lautstärke.
-            </p>
-          </div>
+        <div class="reportWrap">
+          <!-- Das ist das Bild, das kopiert wird -->
+          <canvas id="report" width="1400" height="840" aria-label="Report Bild"></canvas>
         </div>
-      </div>
-
-      <div class="footer">
-        Tipp für Beamer: Vollbild (F11) + „Ampel lösen“ oder „Mini-Fenster“.
       </div>
     </section>
   </div>
@@ -573,6 +559,9 @@
 
   const sirenOn = document.getElementById('sirenOn');
   const sirenVol = document.getElementById('sirenVol');
+
+  const strictness = document.getElementById('strictness');
+  const strictnessLabel = document.getElementById('strictnessLabel');
 
   const thrYVal = document.getElementById('thrYVal');
   const thrRVal = document.getElementById('thrRVal');
@@ -608,22 +597,57 @@
   const floatingBar = document.getElementById('floatingBar');
   const btnDock = document.getElementById('btnDock');
   const btnOnlyAmpel = document.getElementById('btnOnlyAmpel');
+  let onlyAmpelMode = false;
 
-  // Analysis
-  const analysisBox = document.getElementById('analysisBox');
+  // Analysis/Report
+  const analysisCard = document.getElementById('analysisCard');
   const analysisMeta = document.getElementById('analysisMeta');
-  const pie = document.getElementById('pie');
-  const legend = document.getElementById('legend');
-  const sirenStats = document.getElementById('sirenStats');
-
-  const resultEmoji = document.getElementById('resultEmoji');
-  const resultTitle = document.getElementById('resultTitle');
-  const resultSentence = document.getElementById('resultSentence');
-  const summaryTextEl = document.getElementById('summaryText');
-  const btnCopySummary = document.getElementById('btnCopySummary');
+  const kidText = document.getElementById('kidText');
+  const report = document.getElementById('report');
+  const btnCopyImage = document.getElementById('btnCopyImage');
+  const btnDownloadPng = document.getElementById('btnDownloadPng');
   const copyHint = document.getElementById('copyHint');
 
-  let lastSummaryText = "";
+  let lastReportBlob = null;
+
+  // PiP
+  let pipWin = null;
+  const pipSupported = !!(window.documentPictureInPicture && window.documentPictureInPicture.requestWindow);
+
+  // --- Audio analysis
+  let audioCtx = null;
+  let analyser = null;
+  let mediaStream = null;
+  let rafId = null;
+  let data = null;
+
+  // smoothing
+  let ema = null;
+  let peak = -Infinity;
+
+  // calibration
+  let calibrating = false;
+  let calStart = 0;
+  let calSamples = [];
+  let baseOffset = 0;
+
+  // delayed state switching
+  let displayedState = "green";
+  let candidateState = "green";
+  let candidateSince = null;
+
+  // session stats
+  let sessionActive = false;
+  let sessionStartTs = 0;
+  let lastStateChangeTs = 0;
+  let timeIn = { green: 0, yellow: 0, red: 0 };
+  let sirenCount = 0;
+
+  // siren
+  let overLoudSince = null;
+  let sirenActive = false;
+  let sirenOsc = null, sirenGain = null, sirenLfo = null, sirenLfoGain = null;
+  let sirenRampStartMs = 0;
 
   const sentences = {
     good: [
@@ -664,52 +688,8 @@
     ]
   };
 
-  function pick(arr){
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
-
-  let onlyAmpelMode = false;
-
-  // PiP window
-  let pipWin = null;
-  const pipSupported = !!(window.documentPictureInPicture && window.documentPictureInPicture.requestWindow);
-
-  // --- Audio analysis
-  let audioCtx = null;
-  let analyser = null;
-  let mediaStream = null;
-  let rafId = null;
-  let data = null;
-
-  // smoothing
-  let ema = null;
-  let peak = -Infinity;
-
-  // calibration
-  let calibrating = false;
-  let calStart = 0;
-  let calSamples = [];
-  let baseOffset = 0;
-
-  // --- Delayed state change tracking
-  let displayedState = "green";
-  let candidateState = "green";
-  let candidateSince = null;
-
-  // --- Session stats (durations)
-  let sessionActive = false;
-  let sessionStartTs = 0;
-  let lastStateChangeTs = 0;
-  let timeIn = { green: 0, yellow: 0, red: 0 };
-  let sirenCount = 0;
-
-  // --- Siren (continuous + ramp)
-  let overLoudSince = null;
-  let sirenActive = false;
-  let sirenOsc = null, sirenGain = null, sirenLfo = null, sirenLfoGain = null;
-  let sirenRampStartMs = 0;
-
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
   function setLive(on){
     liveDot.classList.toggle('live', on);
@@ -718,6 +698,12 @@
     btnStart.disabled = on;
     btnStop.disabled  = !on;
     btnCal.disabled   = !on;
+  }
+
+  function strictnessName(v){
+    if(v === 0) return "locker";
+    if(v === 2) return "streng";
+    return "normal";
   }
 
   function readSettings(){
@@ -733,6 +719,7 @@
       offset: Number(offset.value),
       sirenOn: !!sirenOn.checked,
       sirenVol: Number(sirenVol.value),
+      strictness: Number(strictness.value) // 0..2
     };
   }
 
@@ -751,6 +738,8 @@
     t2.textContent = `Rot ≥ ${s.red.toFixed(0)} dB`;
     tHold.textContent = `Wechsel: ${s.hold.toFixed(1)}s stabil`;
     holdInfo.textContent = s.hold.toFixed(1);
+
+    strictnessLabel.textContent = strictnessName(s.strictness);
   }
 
   function setLights(state){
@@ -765,11 +754,10 @@
 
   function storeSettings(){
     const s = readSettings();
-    localStorage.setItem('noise-traffic-light-settings-v4', JSON.stringify({ ...s, baseOffset }));
+    localStorage.setItem('noise-traffic-light-settings-v5', JSON.stringify({ ...s, baseOffset }));
   }
-
   function loadSettings(){
-    const raw = localStorage.getItem('noise-traffic-light-settings-v4');
+    const raw = localStorage.getItem('noise-traffic-light-settings-v5');
     if(!raw) return;
     try{
       const s = JSON.parse(raw);
@@ -780,11 +768,11 @@
       if(typeof s.offset === 'number') offset.value = String(s.offset);
       if(typeof s.sirenOn === 'boolean') sirenOn.checked = s.sirenOn;
       if(typeof s.sirenVol === 'number') sirenVol.value = String(s.sirenVol);
+      if(typeof s.strictness === 'number') strictness.value = String(s.strictness);
       if(typeof s.baseOffset === 'number') baseOffset = s.baseOffset;
     }catch{}
     syncUI();
   }
-
   function resetSettings(){
     thrYellow.value = "60";
     thrRed.value = "75";
@@ -793,6 +781,7 @@
     offset.value = "0";
     sirenOn.checked = false;
     sirenVol.value = "0.35";
+    strictness.value = "1";
     baseOffset = 0;
     syncUI();
     storeSettings();
@@ -863,13 +852,10 @@
 
   function updateSirenVolume(targetVolume){
     if(!audioCtx || !sirenActive || !sirenGain) return;
-
     const elapsed = (performance.now() - sirenRampStartMs) / 1000;
     const rampT = clamp(elapsed / 6, 0, 1);
-
     const minVol = 0.02;
     const vol = minVol + (targetVolume - minVol) * (rampT * rampT);
-
     const now = audioCtx.currentTime;
     sirenGain.gain.cancelScheduledValues(now);
     sirenGain.gain.setTargetAtTime(Math.max(0.0001, vol), now, 0.06);
@@ -999,15 +985,10 @@
 
   async function start(){
     try{
-      analysisBox.classList.remove('show');
-      legend.innerHTML = "";
-      sirenStats.textContent = "—";
+      analysisCard.style.display = "none";
       copyHint.textContent = "—";
-      lastSummaryText = "";
-      summaryTextEl.textContent = "—";
-      resultEmoji.textContent = "🙂";
-      resultTitle.textContent = "—";
-      resultSentence.textContent = "—";
+      kidText.textContent = "—";
+      lastReportBlob = null;
       resetRedEmoji();
 
       mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -1079,7 +1060,7 @@
 
     setLive(false);
 
-    renderAnalysis(timeIn, now - sessionStartTs, sirenCount);
+    renderReport(timeIn, now - sessionStartTs, sirenCount);
 
     dbVal.textContent = "--";
     fill.style.width = "0%";
@@ -1105,90 +1086,41 @@
     return `${m}m ${String(r).padStart(2,'0')}s`;
   }
 
-  function tryCopyToClipboard(text){
-    // Secure context best: navigator.clipboard
-    if (navigator.clipboard && window.isSecureContext) {
-      return navigator.clipboard.writeText(text);
+  function getStrictThresholds(level){
+    // level: 0 locker, 1 normal, 2 streng
+    if(level === 0){
+      return { goodRedMax: 15, goodGreenMin: 55, okRedMax: 30 };
     }
-
-    // Fallback:
-    return new Promise((resolve, reject) => {
-      try{
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed';
-        ta.style.left = '-9999px';
-        ta.style.top = '0';
-        document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
-        const ok = document.execCommand('copy');
-        document.body.removeChild(ta);
-        ok ? resolve() : reject(new Error("execCommand failed"));
-      }catch(e){
-        reject(e);
-      }
-    });
+    if(level === 2){
+      return { goodRedMax: 7, goodGreenMin: 65, okRedMax: 18 };
+    }
+    return { goodRedMax: 10, goodGreenMin: 60, okRedMax: 25 };
   }
 
-  function ratingFromParts(parts){
-    const total = parts.reduce((a,p)=>a+p.value,0) || 1;
-    const red = parts.find(p=>p.key==='red')?.value ?? 0;
-    const green = parts.find(p=>p.key==='green')?.value ?? 0;
-    const redPct = (red/total)*100;
-    const greenPct = (green/total)*100;
+  function rating(totalMs, greenMs, yellowMs, redMs, strictLevel){
+    const total = Math.max(1, totalMs);
+    const redPct = (redMs/total)*100;
+    const greenPct = (greenMs/total)*100;
+    const t = getStrictThresholds(strictLevel);
 
-    // Anpassbar:
-    if (redPct <= 10 && greenPct >= 60) return "good";
-    if (redPct <= 25) return "ok";
+    if(redPct <= t.goodRedMax && greenPct >= t.goodGreenMin) return "good";
+    if(redPct <= t.okRedMax) return "ok";
     return "bad";
   }
 
-  function setResultUI(kind){
-    if(kind === "good"){
-      resultEmoji.textContent = "😄👍";
-      resultTitle.textContent = "Richtig stark!";
-      resultSentence.textContent = pick(sentences.good);
-      return;
-    }
-    if(kind === "ok"){
-      resultEmoji.textContent = "😐🤷";
-      resultTitle.textContent = "Ganz okay!";
-      resultSentence.textContent = pick(sentences.ok);
-      return;
-    }
-    resultEmoji.textContent = "😞👎";
-    resultTitle.textContent = "Heute war’s zu laut.";
-    resultSentence.textContent = pick(sentences.bad);
+  function emojiAndTitle(kind){
+    if(kind === "good") return { emoji:"😄👍", title:"Richtig stark!", sentence: pick(sentences.good) };
+    if(kind === "ok") return { emoji:"😐🤷", title:"Ganz okay!", sentence: pick(sentences.ok) };
+    return { emoji:"😞👎", title:"Heute war’s zu laut.", sentence: pick(sentences.bad) };
   }
 
-  function drawPie(canvas, parts){
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width, H = canvas.height;
-    ctx.clearRect(0,0,W,H);
-
-    // background
-    ctx.fillStyle = '#070c1b';
-    ctx.fillRect(0,0,W,H);
-
+  function drawPieTo(ctx, cx, cy, r, parts){
     const total = parts.reduce((a,p)=>a+p.value,0) || 1;
-
-    // positions
-    const cx = Math.floor(W*0.37);
-    const cy = Math.floor(H*0.54);
-    const r  = Math.floor(Math.min(W,H)*0.33);
-
-    // title
-    ctx.fillStyle = '#eaf0ff';
-    ctx.font = '700 26px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
-    ctx.fillText('Phasen-Verteilung', 28, 48);
-
-    // pie slices + on-slice labels
     let ang = -Math.PI/2;
+
     parts.forEach(p => {
       const slice = (p.value / total) * (Math.PI*2);
 
-      // slice
       ctx.beginPath();
       ctx.moveTo(cx, cy);
       ctx.arc(cx, cy, r, ang, ang + slice);
@@ -1196,24 +1128,22 @@
       ctx.fillStyle = p.color;
       ctx.fill();
 
-      // label (time + percent) at mid angle
+      // label
       const mid = ang + slice/2;
       const lx = cx + Math.cos(mid) * (r * 0.78);
       const ly = cy + Math.sin(mid) * (r * 0.78);
-
       const pct = Math.round((p.value/total)*100);
       const label = `${msToNice(p.value)} • ${pct}%`;
 
-      ctx.font = '700 16px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
+      ctx.font = '900 18px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
-      // contrast outline
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = 'rgba(0,0,0,.55)';
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = 'rgba(255,255,255,.92)';
       ctx.strokeText(label, lx, ly);
 
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = '#111';
       ctx.fillText(label, lx, ly);
 
       ctx.textAlign = 'left';
@@ -1225,111 +1155,191 @@
     // donut hole
     ctx.beginPath();
     ctx.arc(cx, cy, Math.floor(r*0.55), 0, Math.PI*2);
-    ctx.fillStyle = '#070c1b';
+    ctx.fillStyle = '#ffffff';
     ctx.fill();
 
-    // center text
-    ctx.fillStyle = '#eaf0ff';
-    ctx.font = '700 22px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
+    // center
+    ctx.fillStyle = '#111';
+    ctx.font = '1000 22px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
     ctx.textAlign = 'center';
-    ctx.fillText('Gesamt', cx, cy-8);
-    ctx.font = '600 20px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
-    ctx.fillStyle = '#b9c6ffcc';
-    ctx.fillText(msToNice(total), cx, cy+22);
-    ctx.textAlign = 'left';
-
-    // right-side small list (optional but nice)
-    const x0 = Math.floor(W*0.70);
-    let y0 = 120;
-    ctx.font = '600 18px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
-    ctx.fillStyle = '#eaf0ff';
-    ctx.fillText('Kurzüberblick', x0, 90);
-
-    ctx.font = '500 16px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
-    parts.forEach(p => {
-      const pct = Math.round((p.value/total)*100);
-
-      ctx.fillStyle = p.color;
-      ctx.fillRect(x0, y0-14, 14, 14);
-
-      ctx.fillStyle = '#b9c6ffcc';
-      ctx.fillText(`${p.label}: ${msToNice(p.value)} (${pct}%)`, x0 + 22, y0-2);
-      y0 += 34;
-    });
-
+    ctx.fillText('Gesamt', cx, cy-10);
+    ctx.font = '900 22px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+    ctx.fillStyle = 'rgba(0,0,0,.70)';
+    ctx.fillText(msToNice(total), cx, cy+20);
     ctx.textAlign = 'left';
   }
 
-  async function renderAnalysis(timeIn, totalMs, sirenCount){
-    const parts = [
-      { key:'green', label:'Grün', value: timeIn.green, color: '#30d158' },
-      { key:'yellow', label:'Gelb', value: timeIn.yellow, color: '#ffd60a' },
-      { key:'red', label:'Rot', value: timeIn.red, color: '#ff453a' },
-    ];
+  function makeReportCanvas(parts, totalMs, sirenCount, strictLevel){
+    const ctx = report.getContext('2d');
+    const W = report.width, H = report.height;
 
-    analysisMeta.textContent = `Gesamtdauer: ${msToNice(totalMs)}`;
-    drawPie(pie, parts);
+    // background
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0,0,W,H);
 
-    legend.innerHTML = "";
-    parts.forEach(p => {
-      const row = document.createElement('div');
-      row.className = 'legendItem';
-      row.innerHTML = `
-        <div class="leftLegend">
-          <span class="swatch" style="background:${p.color}"></span>
-          <span>${p.label}</span>
-        </div>
-        <div>${msToNice(p.value)}</div>
-      `;
-      legend.appendChild(row);
-    });
+    // top bar
+    ctx.fillStyle = 'rgba(76,111,255,.10)';
+    ctx.fillRect(0,0,W,110);
 
-    sirenStats.textContent = `Sirene gestartet: ${sirenCount}× (Bedingung: ≥ Rot + 5 dB länger als 10 Sekunden, wenn aktiviert).`;
+    ctx.fillStyle = '#111';
+    ctx.font = '1000 34px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+    ctx.fillText('Lärmampel – Auswertung', 40, 52);
 
-    // rating + sentence
-    const kind = ratingFromParts(parts);
-    setResultUI(kind);
+    ctx.font = '900 18px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+    ctx.fillStyle = 'rgba(0,0,0,.70)';
+    ctx.fillText(`Gesamtzeit: ${msToNice(totalMs)}   •   Bewertung: ${strictnessName(strictLevel)}`, 40, 86);
 
-    // summary text
+    // pie area
+    const pieCx = Math.floor(W*0.30);
+    const pieCy = 430;
+    const pieR  = 260;
+    drawPieTo(ctx, pieCx, pieCy, pieR, parts);
+
+    // right content
     const total = parts.reduce((a,p)=>a+p.value,0) || 1;
+    const g = parts.find(p=>p.key==='green')?.value ?? 0;
+    const y = parts.find(p=>p.key==='yellow')?.value ?? 0;
+    const r = parts.find(p=>p.key==='red')?.value ?? 0;
     const pct = (v) => Math.round((v/total)*100);
 
-    const line1 = `Lärmampel-Auswertung`;
-    const line2 = `Gesamt: ${msToNice(totalMs)}`;
-    const line3 = `Grün: ${msToNice(timeIn.green)} (${pct(timeIn.green)}%)`;
-    const line4 = `Gelb: ${msToNice(timeIn.yellow)} (${pct(timeIn.yellow)}%)`;
-    const line5 = `Rot:  ${msToNice(timeIn.red)} (${pct(timeIn.red)}%)`;
-    const line6 = `Sirene gestartet: ${sirenCount}×`;
-    const line7 = `Bewertung: ${resultTitle.textContent}`;
-    const line8 = `Satz: ${resultSentence.textContent}`;
+    const kind = rating(totalMs, g, y, r, strictLevel);
+    const result = emojiAndTitle(kind);
 
-    lastSummaryText = [line1, line2, line3, line4, line5, line6, "", line7, line8].join("\n");
-    summaryTextEl.textContent = lastSummaryText;
+    const x0 = Math.floor(W*0.58);
+    let y0 = 170;
 
-    // auto copy
-    copyHint.textContent = "Kopiere in Zwischenablage …";
-    try{
-      await tryCopyToClipboard(lastSummaryText);
-      copyHint.textContent = "✅ In die Zwischenablage kopiert.";
-    }catch{
-      copyHint.textContent = "⚠️ Konnte nicht automatisch kopieren (evtl. ohne https). Nutze den Kopieren-Button.";
-    }
+    // Emoji + title
+    ctx.font = '1000 86px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+    ctx.fillStyle = '#111';
+    ctx.fillText(result.emoji, x0, y0);
 
-    analysisBox.classList.add('show');
-    analysisBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    y0 += 10;
+    ctx.font = '1000 40px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+    ctx.fillText(result.title, x0, y0 + 70);
+
+    // Sentence box
+    y0 += 120;
+    ctx.fillStyle = 'rgba(0,0,0,.04)';
+    roundRect(ctx, x0, y0, W - x0 - 40, 120, 18);
+    ctx.fill();
+
+    ctx.fillStyle = '#111';
+    ctx.font = '900 22px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+    wrapText(ctx, result.sentence, x0 + 18, y0 + 40, W - x0 - 40 - 36, 28);
+
+    // Structured summary
+    y0 += 150;
+    ctx.fillStyle = 'rgba(0,0,0,.04)';
+    roundRect(ctx, x0, y0, W - x0 - 40, 280, 18);
+    ctx.fill();
+
+    ctx.fillStyle = '#111';
+    ctx.font = '1000 26px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+    ctx.fillText('Wichtige Infos', x0 + 18, y0 + 42);
+
+    ctx.font = '900 22px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+    ctx.fillStyle = 'rgba(0,0,0,.78)';
+    ctx.fillText(`🟢 Grün: ${msToNice(g)}  (${pct(g)}%)`, x0 + 18, y0 + 90);
+    ctx.fillText(`🟡 Gelb: ${msToNice(y)}  (${pct(y)}%)`, x0 + 18, y0 + 130);
+    ctx.fillText(`🔴 Rot:  ${msToNice(r)}  (${pct(r)}%)`, x0 + 18, y0 + 170);
+    ctx.fillText(`🚨 Sirene: ${sirenCount}× gestartet`, x0 + 18, y0 + 210);
+
+    // bottom tip
+    ctx.fillStyle = 'rgba(76,111,255,.10)';
+    ctx.fillRect(0, H-85, W, 85);
+
+    ctx.fillStyle = '#111';
+    ctx.font = '1000 22px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+    const tip = (kind === "good")
+      ? "Tipp: Haltet die Ruhe – dann geht’s genauso stark weiter!"
+      : (kind === "ok")
+        ? "Tipp: Wir machen kurze Ruhe-Checks – dann wird’s richtig super!"
+        : "Tipp: Leise Stimmen + klare Aufgaben – dann klappt’s morgen besser!";
+    ctx.fillText(tip, 40, H-35);
+
+    // return also kidText lines for page text
+    const headline = `${result.emoji} ${result.title}`;
+    const lines = [
+      headline,
+      `Gesamtzeit: ${msToNice(totalMs)} (Bewertung: ${strictnessName(strictLevel)})`,
+      `Grün: ${msToNice(g)} (${pct(g)}%)  |  Gelb: ${msToNice(y)} (${pct(y)}%)  |  Rot: ${msToNice(r)} (${pct(r)}%)`,
+      `Sirene: ${sirenCount}× gestartet`,
+      result.sentence
+    ];
+    return { kind, result, textLines: lines };
   }
 
-  // Copy button
-  btnCopySummary.addEventListener('click', async () => {
-    if(!lastSummaryText) return;
-    copyHint.textContent = "Kopiere …";
-    try{
-      await tryCopyToClipboard(lastSummaryText);
-      copyHint.textContent = "✅ In die Zwischenablage kopiert.";
-    }catch{
-      copyHint.textContent = "⚠️ Kopieren fehlgeschlagen.";
+  function roundRect(ctx, x, y, w, h, r){
+    const rr = Math.min(r, w/2, h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr, y);
+    ctx.arcTo(x+w, y, x+w, y+h, rr);
+    ctx.arcTo(x+w, y+h, x, y+h, rr);
+    ctx.arcTo(x, y+h, x, y, rr);
+    ctx.arcTo(x, y, x+w, y, rr);
+    ctx.closePath();
+  }
+
+  function wrapText(ctx, text, x, y, maxWidth, lineHeight){
+    const words = String(text).split(/\s+/);
+    let line = "";
+    for(let n=0;n<words.length;n++){
+      const testLine = line + (line ? " " : "") + words[n];
+      const metrics = ctx.measureText(testLine);
+      if(metrics.width > maxWidth && line){
+        ctx.fillText(line, x, y);
+        line = words[n];
+        y += lineHeight;
+      }else{
+        line = testLine;
+      }
     }
-  });
+    if(line) ctx.fillText(line, x, y);
+  }
+
+  async function canvasToBlob(canvas){
+    return new Promise((resolve) => canvas.toBlob(resolve, 'image/png', 1.0));
+  }
+
+  async function copyCanvasImageToClipboard(canvas){
+    // Clipboard image write typically requires secure context + user gesture
+    const blob = await canvasToBlob(canvas);
+    if(!blob) throw new Error("Blob creation failed");
+    if(!(navigator.clipboard && window.ClipboardItem)) {
+      throw new Error("ClipboardItem not available");
+    }
+    await navigator.clipboard.write([ new ClipboardItem({ "image/png": blob }) ]);
+    return blob;
+  }
+
+  async function renderReport(timeIn, totalMs, sirenCount){
+    const s = readSettings();
+    const parts = [
+      { key:'green', label:'Grün', value: timeIn.green, color: getComputedStyle(document.documentElement).getPropertyValue('--good').trim() || '#2ecc71' },
+      { key:'yellow', label:'Gelb', value: timeIn.yellow, color: getComputedStyle(document.documentElement).getPropertyValue('--warn').trim() || '#f1c40f' },
+      { key:'red', label:'Rot', value: timeIn.red, color: getComputedStyle(document.documentElement).getPropertyValue('--bad').trim() || '#e74c3c' },
+    ];
+
+    analysisMeta.textContent = `Gesamtdauer: ${msToNice(totalMs)}   •   Bewertung: ${strictnessName(s.strictness)}`;
+    const built = makeReportCanvas(parts, totalMs, sirenCount, s.strictness);
+    kidText.textContent = built.textLines.join("  —  ");
+
+    analysisCard.style.display = "block";
+    analysisCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // prepare blob for download/copy
+    lastReportBlob = await canvasToBlob(report);
+
+    // Auto-copy attempt (may be blocked). We try once; if blocked, user uses button.
+    copyHint.textContent = "Versuche automatisch zu kopieren …";
+    try{
+      await copyCanvasImageToClipboard(report);
+      copyHint.textContent = "✅ Als Bild in die Zwischenablage kopiert!";
+    }catch{
+      copyHint.textContent = "ℹ️ Klick auf „Alles als Bild kopieren“ (Auto kann blockiert sein).";
+    }
+  }
 
   // --- Floating overlay logic
   function isDocked(){ return ampelBlock.parentElement === originalParent; }
@@ -1353,6 +1363,7 @@
     btnFloat.textContent = "🪟 Ampel lösen";
   }
 
+  // drag floating
   (function setupDrag(){
     let dragging = false, startX=0, startY=0, startLeft=0, startTop=0;
     floatingBar.addEventListener('pointerdown', (e) => {
@@ -1387,7 +1398,7 @@
   btnDock.addEventListener('click', dockBack);
   btnFloat.addEventListener('click', () => isDocked() ? undockToFloating() : dockBack());
 
-  // --- Document Picture-in-Picture
+  // --- PiP
   async function openPip(){
     if(!pipSupported){
       alert("Mini-Fenster wird in diesem Browser/Modus nicht unterstützt.\nNutze stattdessen „Ampel lösen“.");
@@ -1400,7 +1411,7 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Lärmampel</title>
-        <style>body{ margin:0; background:#070b18; display:flex; align-items:center; justify-content:center; height:100vh; }</style>
+        <style>body{ margin:0; background:#fff; display:flex; align-items:center; justify-content:center; height:100vh; }</style>
       `;
       document.querySelectorAll('style').forEach(st => pipWin.document.head.appendChild(st.cloneNode(true)));
 
@@ -1443,6 +1454,31 @@
 
   btnPip.addEventListener('click', () => pipWin ? closePip() : openPip());
 
+  // --- Copy/Download report
+  btnCopyImage.addEventListener('click', async () => {
+    copyHint.textContent = "Kopiere als Bild …";
+    try{
+      await copyCanvasImageToClipboard(report);
+      copyHint.textContent = "✅ Als Bild in die Zwischenablage kopiert!";
+    }catch(e){
+      console.warn(e);
+      copyHint.textContent = "⚠️ Kopieren blockiert. Nutze „PNG herunterladen“ oder hoste über https (GitHub Pages).";
+    }
+  });
+
+  btnDownloadPng.addEventListener('click', async () => {
+    const blob = lastReportBlob || await canvasToBlob(report);
+    if(!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'laermampel-auswertung.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+
   // --- Slider / inputs
   thrYellow.addEventListener('input', () => {
     if(Number(thrRed.value) <= Number(thrYellow.value)) thrRed.value = String(Number(thrYellow.value) + 1);
@@ -1457,6 +1493,7 @@
   offset.addEventListener('input', syncUI);
   sirenOn.addEventListener('change', syncUI);
   sirenVol.addEventListener('input', syncUI);
+  strictness.addEventListener('input', syncUI);
 
   // --- Buttons
   btnStart.addEventListener('click', start);
