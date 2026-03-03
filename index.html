@@ -1098,41 +1098,42 @@
   function drawPieTo(ctx, cx, cy, r, parts){
     const total = parts.reduce((a,p)=>a+p.value,0) || 1;
     let ang = -Math.PI/2;
-
+  
     parts.forEach(p => {
       const slice = (p.value / total) * (Math.PI*2);
-
+  
+      // Slice
       ctx.beginPath();
       ctx.moveTo(cx, cy);
       ctx.arc(cx, cy, r, ang, ang + slice);
       ctx.closePath();
       ctx.fillStyle = p.color;
       ctx.fill();
-
-      // Label nur Zeit
+  
+      // Label nur Zeit (größer)
       const mid = ang + slice/2;
       const lx = cx + Math.cos(mid) * (r * 0.72);
       const ly = cy + Math.sin(mid) * (r * 0.72);
-
       const label = `${msToNice(p.value)}`;
-
-      ctx.font = '1000 22px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
+  
+      ctx.font = '1000 36px "Comic Sans MS","Comic Neue","Segoe UI",system-ui';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-
-      // weißer Rand für gute Lesbarkeit
-      ctx.lineWidth = 7;
+  
+      // Weißer Rand für Lesbarkeit
+      ctx.lineWidth = 10;
       ctx.strokeStyle = 'rgba(255,255,255,.96)';
       ctx.strokeText(label, lx, ly);
-
+  
       ctx.fillStyle = '#111';
       ctx.fillText(label, lx, ly);
-
+  
       ctx.textAlign = 'left';
       ctx.textBaseline = 'alphabetic';
-
+  
       ang += slice;
     });
+  }
 
     // Mitte: Gesamtzeit
     ctx.fillStyle = 'rgba(255,255,255,.88)';
