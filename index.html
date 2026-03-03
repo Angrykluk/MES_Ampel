@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lärmampel – Klassenraum</title>
+  <style>
+    :root{
+      --bg1:#0b1220;
+      --bg2:#101a33;
+      --card:#0f1a34cc;
+      --stroke:#ffffff1f;
+      --text:#eaf0ff;
+      --muted:#b9c6ffcc;
+      --good:#30d158;
+      --warn:#ffd60a;
+      --bad:#ff453a;
+      --accent:#7c5cff;
+      --shadow: 0 12px 40px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color:var(--text);
+      min-height:100vh;
+      background:
+        radial-gradient(1000px 600px at 10% 10%, #2a3cff33, transparent 60%),
+        radial-gradient(900px 500px at 90% 20%, #7c5cff26, transparent 60%),
+        linear-gradient(160deg, var(--bg1), var(--bg2));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
+    }
+    .wrap{
+      width:min(1100px, 100%);
+      display:grid;
+      grid-template-columns: 420px 1fr;
+      gap:22px;
+    }
+    @media (max-width: 900px){
+      .wrap{grid-template-columns: 1fr; }
+    }
+    .card{
+      background: linear-gradient(180deg, #0f1a34cc, #0b142bcc);
+      border:1px solid var(--stroke);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      overflow:hidden;
+    }
+    header{ padding:18px 18px 0 18px; }
+    h1{
+      margin:0;
+      font-size:20px;
+      letter-spacing:.2px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .pill{
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      color: var(--muted);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .dot{ width:8px;height:8px;border-radius:50%; background:#999; box-shadow: 0 0 0 3px #ffffff10; }
+    .dot.live{ background: var(--good); box-shadow: 0 0 0 3px #30d15833, 0 0 18px #30d15866; }
+    .dot.off{ background:#6b7280; }
+
+    /* --- Ampel UI (wird in Overlay/PiP verschoben) --- */
+    .ampelArea{
+      padding:18px;
+      display:flex;
+      gap:18px;
+      align-items:center;
+      justify-content:center;
+    }
+    .ampel{
+      width:160px;
+      padding:16px 14px;
+      border-radius:26px;
+      border:1px solid var(--stroke);
+      background: linear-gradient(180deg, #0b1430, #060b1a);
+      box-shadow: inset 0 0 0 1px #00000055, 0 20px 60px #00000066;
+      position:relative;
+    }
+    .ampel:before{
+      content:"";
+      position:absolute;
+      inset:10px;
+      border-radius:20px;
+      background: radial-gradient(200px 140px at 50% 0%, #ffffff1a, transparent 60%);
+      pointer-events:none;
+    }
+    .lamp{
+      width:110px;
+      height:110px;
+      border-radius:50%;
+      margin:10px auto;
+      background: radial-gradient(circle at 35% 30%, #ffffff22, transparent 45%),
+                  radial-gradient(circle at 50% 60%, #00000066, transparent 58%),
+                  #1f2937;
+      border: 1px solid #ffffff22;
+      box-shadow: inset 0 -18px 30px #00000066, 0 10px 24px #00000055;
+      position:relative;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .lamp.on{
+      box-shadow:
+        inset 0 -18px 30px #00000055,
+        0 10px 24px #00000055,
+        0 0 38px currentColor;
+      border-color: #ffffff3a;
+    }
+    .lamp.good{ color: var(--good); background:
+      radial-gradient(circle at 35% 30%, #ffffff55, transparent 45%),
+      radial-gradient(circle at 50% 60%, #00000044, transparent 58%),
+      radial-gradient(circle at 50% 50%, #30d158cc, #1b6b35 70%);
+    }
+    .lamp.warn{ color: var(--warn); background:
+      radial-gradient(circle at 35% 30%, #ffffff55, transparent 45%),
+      radial-gradient(circle at 50% 60%, #00000044, transparent 58%),
+      radial-gradient(circle at 50% 50%, #ffd60acc, #8a6b00 70%);
+    }
+    .lamp.bad{ color: var(--bad); background:
+      radial-gradient(circle at 35% 30%, #ffffff55, transparent 45%),
+      radial-gradient(circle at 50% 60%, #00000044, transparent 58%),
+      radial-gradient(circle at 50% 50%, #ff453acc, #7a1711 70%);
+    }
+
+    /* Smiley: nur sichtbar, wenn diese Lampe aktiv ist */
+    .emoji{
+      font-size:46px;
+      filter: drop-shadow(0 10px 12px rgba(0,0,0,.45));
+      opacity:0;
+      transform: translateY(2px) scale(.98);
+      transition: opacity .18s ease, transform .18s ease;
+      user-select:none;
+      pointer-events:none;
+    }
+    .lamp.on .emoji{
+      opacity:1;
+      transform: translateY(0px) scale(1);
+    }
+
+    .readout{ flex:1; min-width: 200px; }
+    .big{ font-size:46px; line-height:1; margin:0 0 8px 0; letter-spacing:-.8px; }
+    .label{ margin:0; color:var(--muted); font-size:13px; }
+    .bar{
+      margin-top:14px;
+      height:14px;
+      border-radius:999px;
+      border:1px solid var(--stroke);
+      background: #0b1225;
+      overflow:hidden;
+      position:relative;
+    }
+    .fill{
+      height:100%;
+      width:0%;
+      border-radius:999px;
+      background: linear-gradient(90deg, var(--good), var(--warn), var(--bad));
+      filter:saturate(1.2);
+    }
+    .ticks{
+      display:flex;
+      justify-content:space-between;
+      margin-top:8px;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .controls{
+      padding:18px;
+      border-top:1px solid var(--stroke);
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px 14px;
+    }
+    @media (max-width: 900px){
+      .controls{ grid-template-columns: 1fr; }
+    }
+    .row{
+      padding:12px;
+      border:1px solid var(--stroke);
+      border-radius:14px;
+      background: #0a1227aa;
+    }
+    .row h3{
+      margin:0 0 8px 0;
+      font-size:13px;
+      color: var(--muted);
+      font-weight:600;
+      letter-spacing:.2px;
+    }
+    input[type="range"]{ width:100%; accent-color: var(--accent); }
+    .vals{
+      display:flex;
+      justify-content:space-between;
+      font-size:12px;
+      color: var(--muted);
+      margin-top:6px;
+    }
+
+    .btns{
+      padding:18px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      border-top:1px solid var(--stroke);
+    }
+    button{
+      appearance:none;
+      border:1px solid var(--stroke);
+      background: linear-gradient(180deg, #1a2a5a, #0f1a36);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      box-shadow: 0 10px 20px #00000033;
+      font-weight:600;
+      letter-spacing:.2px;
+    }
+    button:hover{ transform: translateY(-1px); }
+    button:active{ transform: translateY(0px); }
+    button.secondary{
+      background: linear-gradient(180deg, #0f1a36, #0b1225);
+      color:var(--muted);
+    }
+    button:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
+    .note{
+      padding:16px 18px 18px 18px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.35;
+    }
+
+    .panel{ padding:18px; }
+    .panel h2{ margin:0 0 10px 0; font-size:16px; }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:14px;
+    }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+    .stat{
+      padding:14px;
+      border:1px solid var(--stroke);
+      border-radius:14px;
+      background:#0a1227aa;
+    }
+    .stat .k{ color:var(--muted); font-size:12px; margin:0 0 6px 0; }
+    .stat .v{ font-size:20px; margin:0; letter-spacing:-.3px; }
+    .footer{ padding:12px 18px 18px 18px; color:var(--muted); font-size:12px; }
+
+    /* --- Floating overlay ("Ampel-only") --- */
+    .floatingHost{
+      position:fixed;
+      left: 24px;
+      top: 24px;
+      z-index: 999999;
+      width: 320px;
+      max-width: calc(100vw - 24px - 24px);
+      border-radius: 16px;
+      border: 1px solid var(--stroke);
+      background: linear-gradient(180deg, #0f1a34ee, #0b142bee);
+      box-shadow: 0 20px 70px rgba(0,0,0,.55);
+      overflow:hidden;
+      display:none;
+      user-select:none;
+    }
+    .floatingHost.show{ display:block; }
+    .floatingBar{
+      padding:10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      cursor:grab;
+      border-bottom:1px solid var(--stroke);
+      background: radial-gradient(700px 160px at 30% 0%, #7c5cff22, transparent 60%);
+    }
+    .floatingBar:active{ cursor:grabbing; }
+    .floatingTitle{
+      font-weight:700;
+      letter-spacing:.2px;
+      font-size:13px;
+      color:var(--text);
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .floatingBody{
+      padding:12px;
+    }
+    .miniBtns{
+      display:flex; gap:8px; align-items:center;
+    }
+    .miniBtns button{
+      padding:8px 10px;
+      border-radius:10px;
+      font-size:12px;
+    }
+    .onlyAmpel .readout{ display:none; }
+    .onlyAmpel .ampelArea{ padding:0; }
+    .onlyAmpel .ampel{ margin:0 auto; }
+  </style>
+</head>
+<body>
+  <!-- Floating overlay container -->
+  <div id="floatingHost" class="floatingHost" aria-label="Schwebendes Ampelfenster">
+    <div id="floatingBar" class="floatingBar" title="Zum Verschieben ziehen">
+      <div class="floatingTitle">🪟 Lärmampel (schwebend)</div>
+      <div class="miniBtns">
+        <button id="btnOnlyAmpel" class="secondary" title="Nur Ampel anzeigen">Nur Ampel</button>
+        <button id="btnDock" class="secondary" title="Zurück andocken">Andocken</button>
+      </div>
+    </div>
+    <div id="floatingBody" class="floatingBody"></div>
+  </div>
+
+  <div class="wrap">
+    <!-- LEFT: Ampel -->
+    <section class="card">
+      <header>
+        <h1>
+          Lärmampel
+          <span class="pill"><span id="liveDot" class="dot off"></span><span id="liveText">Mikrofon aus</span></span>
+        </h1>
+      </header>
+
+      <!-- Dieses Element wird für Overlay/PiP verschoben -->
+      <div id="ampelBlock" class="ampelArea">
+        <div class="ampel" aria-label="Ampel">
+          <div id="lampG" class="lamp good on" title="Grün">
+            <span class="emoji" aria-hidden="true">😄</span>
+          </div>
+          <div id="lampY" class="lamp warn" title="Gelb">
+            <span class="emoji" aria-hidden="true">😐</span>
+          </div>
+          <div id="lampR" class="lamp bad" title="Rot">
+            <span class="emoji" aria-hidden="true">😠</span>
+          </div>
+        </div>
+
+        <div class="readout">
+          <p class="big"><span id="dbVal">--</span> <span style="font-size:18px;color:var(--muted)">dB</span></p>
+          <p class="label">Gemessener Pegel (relativ, aus Mikrofon)</p>
+
+          <div class="bar" aria-label="Pegelanzeige">
+            <div id="fill" class="fill"></div>
+          </div>
+          <div class="ticks">
+            <span>Leise</span>
+            <span id="t1">Gelb</span>
+            <span id="t2">Rot</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <h3>Schwelle Gelb (ab … dB)</h3>
+          <input id="thrYellow" type="range" min="30" max="100" value="60" step="1" />
+          <div class="vals"><span>Grün</span><span><span id="thrYVal">60</span> dB</span></div>
+        </div>
+
+        <div class="row">
+          <h3>Schwelle Rot (ab … dB)</h3>
+          <input id="thrRed" type="range" min="40" max="110" value="75" step="1" />
+          <div class="vals"><span>Gelb</span><span><span id="thrRVal">75</span> dB</span></div>
+        </div>
+
+        <div class="row">
+          <h3>Glättung (ruhiger / reaktiver)</h3>
+          <input id="smooth" type="range" min="0.05" max="0.6" value="0.18" step="0.01" />
+          <div class="vals"><span>Reaktiver</span><span><span id="smoothVal">0.18</span></span></div>
+        </div>
+
+        <div class="row">
+          <h3>Kalibrierung (Offset)</h3>
+          <input id="offset" type="range" min="-25" max="25" value="0" step="0.5" />
+          <div class="vals"><span>leiser</span><span><span id="offsetVal">0</span> dB</span></div>
+        </div>
+      </div>
+
+      <div class="btns">
+        <button id="btnStart">🎤 Start</button>
+        <button id="btnStop" class="secondary" disabled>⏹ Stop</button>
+        <button id="btnCal" class="secondary" disabled>🧪 Kalibrieren (10s)</button>
+
+        <button id="btnFloat" class="secondary">🪟 Ampel lösen</button>
+        <button id="btnPip" class="secondary" title="Browserabhängig (Chromium) – wirkt wie immer im Vordergrund">📌 Mini-Fenster</button>
+
+        <button id="btnSave" class="secondary">💾 Einstellungen speichern</button>
+        <button id="btnLoad" class="secondary">↩️ Laden</button>
+        <button id="btnReset" class="secondary">♻️ Reset</button>
+      </div>
+
+      <div class="note">
+        <b>Hinweis:</b> „Mini-Fenster“ nutzt (wenn verfügbar) Document-Picture-in-Picture. Falls dein Browser das nicht unterstützt, bleibt „Ampel lösen“ als Overlay.
+      </div>
+    </section>
+
+    <!-- RIGHT: Infos -->
+    <section class="card">
+      <div class="panel">
+        <h2>Übersicht & Status</h2>
+        <div class="grid">
+          <div class="stat">
+            <p class="k">Aktuelle Ampel</p>
+            <p id="stateText" class="v">—</p>
+          </div>
+          <div class="stat">
+            <p class="k">Peak (seit Start)</p>
+            <p class="v"><span id="peakVal">—</span> dB</p>
+          </div>
+          <div class="stat">
+            <p class="k">Gelb / Rot Schwellen</p>
+            <p class="v"><span id="sY">60</span> / <span id="sR">75</span> dB</p>
+          </div>
+          <div class="stat">
+            <p class="k">Tipp</p>
+            <p class="v" style="font-size:14px;line-height:1.35;color:var(--muted)">
+              Für Beamer: Vollbild (F11) + „Ampel lösen“. Dann kannst du sie in eine Ecke schieben.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        Mikrofonzugriff funktioniert i.d.R. über https oder localhost.
+      </div>
+    </section>
+  </div>
+
+<script>
+(() => {
+  // --- DOM
+  const ampelBlock = document.getElementById('ampelBlock');
+  const originalParent = ampelBlock.parentElement;
+  const originalNext = ampelBlock.nextElementSibling; // controls block (to reinsert nicely)
+
+  const lampG = document.getElementById('lampG');
+  const lampY = document.getElementById('lampY');
+  const lampR = document.getElementById('lampR');
+  const dbVal = document.getElementById('dbVal');
+  const fill = document.getElementById('fill');
+
+  const thrYellow = document.getElementById('thrYellow');
+  const thrRed = document.getElementById('thrRed');
+  const smooth = document.getElementById('smooth');
+  const offset = document.getElementById('offset');
+
+  const thrYVal = document.getElementById('thrYVal');
+  const thrRVal = document.getElementById('thrRVal');
+  const smoothVal = document.getElementById('smoothVal');
+  const offsetVal = document.getElementById('offsetVal');
+
+  const btnStart = document.getElementById('btnStart');
+  const btnStop  = document.getElementById('btnStop');
+  const btnCal   = document.getElementById('btnCal');
+  const btnSave  = document.getElementById('btnSave');
+  const btnLoad  = document.getElementById('btnLoad');
+  const btnReset = document.getElementById('btnReset');
+
+  const btnFloat = document.getElementById('btnFloat');
+  const btnPip = document.getElementById('btnPip');
+
+  const liveDot = document.getElementById('liveDot');
+  const liveText = document.getElementById('liveText');
+  const stateText = document.getElementById('stateText');
+  const peakVal = document.getElementById('peakVal');
+  const sY = document.getElementById('sY');
+  const sR = document.getElementById('sR');
+  const t1 = document.getElementById('t1');
+  const t2 = document.getElementById('t2');
+
+  // Floating overlay
+  const floatingHost = document.getElementById('floatingHost');
+  const floatingBody = document.getElementById('floatingBody');
+  const floatingBar = document.getElementById('floatingBar');
+  const btnDock = document.getElementById('btnDock');
+  const btnOnlyAmpel = document.getElementById('btnOnlyAmpel');
+
+  let onlyAmpelMode = false;
+
+  // PiP window state (Document PiP)
+  let pipWin = null;
+  let pipSupported = !!(window.documentPictureInPicture && window.documentPictureInPicture.requestWindow);
+
+  // --- Audio state
+  let audioCtx = null;
+  let analyser = null;
+  let mediaStream = null;
+  let rafId = null;
+  let data = null;
+
+  // smoothing (EMA)
+  let ema = null;
+  let peak = -Infinity;
+
+  // calibration
+  let calibrating = false;
+  let calStart = 0;
+  let calSamples = [];
+  let baseOffset = 0;
+
+  // --- Utils
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+  function setLive(on){
+    liveDot.classList.toggle('live', on);
+    liveDot.classList.toggle('off', !on);
+    liveText.textContent = on ? "Mikrofon an" : "Mikrofon aus";
+    btnStart.disabled = on;
+    btnStop.disabled  = !on;
+    btnCal.disabled   = !on;
+  }
+
+  function readSettings(){
+    let y = Number(thrYellow.value);
+    let r = Number(thrRed.value);
+    if (r <= y) r = y + 1;
+
+    return {
+      yellow: y,
+      red: r,
+      smooth: Number(smooth.value),
+      offset: Number(offset.value),
+    };
+  }
+
+  function syncUI(){
+    const s = readSettings();
+    thrYVal.textContent = s.yellow.toFixed(0);
+    thrRVal.textContent = s.red.toFixed(0);
+    smoothVal.textContent = s.smooth.toFixed(2);
+    offsetVal.textContent = s.offset.toFixed(1);
+
+    sY.textContent = s.yellow.toFixed(0);
+    sR.textContent = s.red.toFixed(0);
+    t1.textContent = `Gelb ≥ ${s.yellow.toFixed(0)} dB`;
+    t2.textContent = `Rot ≥ ${s.red.toFixed(0)} dB`;
+  }
+
+  function setLights(state){
+    lampG.classList.toggle('on', state === 'green');
+    lampY.classList.toggle('on', state === 'yellow');
+    lampR.classList.toggle('on', state === 'red');
+
+    if(state === 'green') stateText.textContent = "🟢 Grün – okay";
+    if(state === 'yellow') stateText.textContent = "🟡 Gelb – leiser!";
+    if(state === 'red') stateText.textContent = "🔴 Rot – zu laut!";
+  }
+
+  function storeSettings(){
+    const s = readSettings();
+    localStorage.setItem('noise-traffic-light-settings', JSON.stringify({ ...s, baseOffset }));
+  }
+
+  function loadSettings(){
+    const raw = localStorage.getItem('noise-traffic-light-settings');
+    if(!raw) return;
+    try{
+      const s = JSON.parse(raw);
+      if(typeof s.yellow === 'number') thrYellow.value = String(s.yellow);
+      if(typeof s.red === 'number') thrRed.value = String(s.red);
+      if(typeof s.smooth === 'number') smooth.value = String(s.smooth);
+      if(typeof s.offset === 'number') offset.value = String(s.offset);
+      if(typeof s.baseOffset === 'number') baseOffset = s.baseOffset;
+    }catch{}
+    syncUI();
+  }
+
+  function resetSettings(){
+    thrYellow.value = "60";
+    thrRed.value = "75";
+    smooth.value = "0.18";
+    offset.value = "0";
+    baseOffset = 0;
+    syncUI();
+    storeSettings();
+  }
+
+  function rmsToDb(rms){
+    const eps = 1e-8;
+    const db = 20 * Math.log10(Math.max(rms, eps));
+    return db + 90;
+  }
+
+  function computeRms(floatTimeData){
+    let sum = 0;
+    for (let i=0;i<floatTimeData.length;i++){
+      const v = floatTimeData[i];
+      sum += v*v;
+    }
+    return Math.sqrt(sum / floatTimeData.length);
+  }
+
+  function update(){
+    if(!analyser) return;
+
+    analyser.getFloatTimeDomainData(data);
+    const rms = computeRms(data);
+
+    let db = rmsToDb(rms);
+    const s = readSettings();
+    db = db + baseOffset + s.offset;
+
+    if(ema == null) ema = db;
+    ema = (1 - s.smooth) * ema + s.smooth * db;
+
+    if(ema > peak) peak = ema;
+
+    let state = "green";
+    if(ema >= s.red) state = "red";
+    else if(ema >= s.yellow) state = "yellow";
+    setLights(state);
+
+    dbVal.textContent = ema.toFixed(1);
+    peakVal.textContent = isFinite(peak) ? peak.toFixed(1) : "—";
+
+    const pct = clamp(((ema - 30) / (110 - 30)) * 100, 0, 100);
+    fill.style.width = pct.toFixed(1) + "%";
+
+    if(calibrating){
+      calSamples.push(ema);
+      if(performance.now() - calStart >= 10_000){
+        calibrating = false;
+        const target = 45;
+        const avg = calSamples.reduce((a,b)=>a+b,0) / Math.max(1, calSamples.length);
+        baseOffset = target - avg;
+        storeSettings();
+        alert(`Kalibrierung fertig.\nDurchschnitt: ${avg.toFixed(1)} dB\nNeuer Auto-Offset: ${baseOffset.toFixed(1)} dB`);
+      }
+    }
+
+    rafId = requestAnimationFrame(update);
+  }
+
+  async function start(){
+    try{
+      mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false }
+      });
+
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const src = audioCtx.createMediaStreamSource(mediaStream);
+
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 2048;
+      analyser.smoothingTimeConstant = 0;
+
+      src.connect(analyser);
+      data = new Float32Array(analyser.fftSize);
+
+      ema = null;
+      peak = -Infinity;
+
+      setLive(true);
+      update();
+    } catch (err){
+      console.error(err);
+      alert("Mikrofon konnte nicht gestartet werden. Bitte Zugriff erlauben und Seite über https oder localhost öffnen.");
+      setLive(false);
+    }
+  }
+
+  function stop(){
+    if(rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+
+    if(mediaStream){
+      mediaStream.getTracks().forEach(t => t.stop());
+      mediaStream = null;
+    }
+    if(audioCtx){
+      audioCtx.close();
+      audioCtx = null;
+    }
+    analyser = null;
+    data = null;
+
+    setLive(false);
+    setLights("green");
+    dbVal.textContent = "--";
+    fill.style.width = "0%";
+    stateText.textContent = "—";
+    peakVal.textContent = "—";
+  }
+
+  function calibrate(){
+    if(!analyser) return;
+    calibrating = true;
+    calStart = performance.now();
+    calSamples = [];
+    alert("Kalibrierung startet jetzt für 10 Sekunden.\nBitte in dieser Zeit „typische Ruhe“ im Raum herstellen.");
+  }
+
+  // --- Floating overlay logic
+  function isDocked(){
+    return ampelBlock.parentElement === originalParent;
+  }
+
+  function undockToFloating(){
+    if(!isDocked()) return;
+    // If currently in PiP, close PiP first
+    if(pipWin) closePip();
+
+    floatingBody.appendChild(ampelBlock);
+    floatingHost.classList.add('show');
+    btnFloat.textContent = "🪟 Ampel ist gelöst";
+  }
+
+  function dockBack(){
+    if(isDocked()) return;
+    // If in PiP, close PiP first
+    if(pipWin) closePip();
+
+    // reinsert before the controls block (originalNext points to controls)
+    originalParent.insertBefore(ampelBlock, originalNext);
+    floatingHost.classList.remove('show');
+    floatingHost.classList.remove('onlyAmpel');
+    onlyAmpelMode = false;
+    btnOnlyAmpel.textContent = "Nur Ampel";
+    btnFloat.textContent = "🪟 Ampel lösen";
+  }
+
+  // drag floating window
+  (function setupDrag(){
+    let dragging = false;
+    let startX = 0, startY = 0, startLeft = 0, startTop = 0;
+
+    floatingBar.addEventListener('pointerdown', (e) => {
+      // avoid dragging when clicking buttons
+      const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+      if(tag === "button") return;
+
+      dragging = true;
+      floatingBar.setPointerCapture(e.pointerId);
+      startX = e.clientX;
+      startY = e.clientY;
+      const rect = floatingHost.getBoundingClientRect();
+      startLeft = rect.left;
+      startTop = rect.top;
+    });
+
+    floatingBar.addEventListener('pointermove', (e) => {
+      if(!dragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      const left = clamp(startLeft + dx, 8, window.innerWidth - floatingHost.offsetWidth - 8);
+      const top  = clamp(startTop + dy, 8, window.innerHeight - floatingHost.offsetHeight - 8);
+      floatingHost.style.left = left + "px";
+      floatingHost.style.top  = top + "px";
+      floatingHost.style.right = "auto";
+      floatingHost.style.bottom = "auto";
+    });
+
+    floatingBar.addEventListener('pointerup', () => { dragging = false; });
+    floatingBar.addEventListener('pointercancel', () => { dragging = false; });
+  })();
+
+  btnOnlyAmpel.addEventListener('click', () => {
+    onlyAmpelMode = !onlyAmpelMode;
+    floatingHost.classList.toggle('onlyAmpel', onlyAmpelMode);
+    btnOnlyAmpel.textContent = onlyAmpelMode ? "Mit Anzeige" : "Nur Ampel";
+  });
+
+  btnDock.addEventListener('click', dockBack);
+  btnFloat.addEventListener('click', () => {
+    if(isDocked()) undockToFloating();
+    else dockBack();
+  });
+
+  // --- Document Picture-in-Picture (browserabhängig)
+  async function openPip(){
+    if(!pipSupported){
+      alert("Mini-Fenster wird in diesem Browser nicht unterstützt.\nNutze stattdessen „Ampel lösen“.");
+      return;
+    }
+    // Ensure we have the ampel block in a stable place (either docked or floating is ok)
+    // We'll move the actual node into the PiP window so it stays live.
+    try{
+      pipWin = await window.documentPictureInPicture.requestWindow({ width: 360, height: 420 });
+
+      // Basic styles inside PiP window
+      pipWin.document.head.innerHTML = `
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Lärmampel</title>
+        <style>
+          body{ margin:0; background:#070b18; display:flex; align-items:center; justify-content:center; height:100vh; }
+          /* inherit the original page CSS by cloning needed styles */
+        </style>
+      `;
+
+      // Clone ALL stylesheets (simple approach: copy current <style> tags)
+      document.querySelectorAll('style').forEach(st => {
+        pipWin.document.head.appendChild(st.cloneNode(true));
+      });
+
+      const holder = pipWin.document.createElement('div');
+      holder.style.padding = '10px';
+      pipWin.document.body.appendChild(holder);
+
+      // If currently docked, undock to floatingBody first (so original page layout doesn't jump too much)
+      // Not strictly required, but keeps things tidy.
+      if(isDocked()){
+        undockToFloating();
+      }
+
+      holder.appendChild(ampelBlock);
+
+      // Make PiP feel "ampel-only"
+      holder.style.width = '100%';
+      holder.style.display = 'flex';
+      holder.style.justifyContent = 'center';
+      holder.style.alignItems = 'center';
+      // Hide readout in PiP? You can keep it; here we keep it compact by default:
+      // (You can comment next line out if you want the numbers in PiP)
+      ampelBlock.querySelector('.readout').style.display = 'none';
+
+      pipWin.addEventListener('pagehide', () => {
+        // If the user closes PiP window, restore ampel block back to floating overlay (or dock)
+        pipWin = null;
+        // restore readout display
+        ampelBlock.querySelector('.readout').style.display = '';
+        // If floatingHost exists, keep it there
+        if(!floatingHost.classList.contains('show')) floatingHost.classList.add('show');
+        floatingBody.appendChild(ampelBlock);
+      });
+    }catch(err){
+      console.error(err);
+      pipWin = null;
+      alert("Mini-Fenster konnte nicht geöffnet werden. Nutze „Ampel lösen“ als Alternative.");
+    }
+  }
+
+  function closePip(){
+    if(!pipWin) return;
+    try{ pipWin.close(); }catch{}
+    pipWin = null;
+    // Restore readout
+    const ro = ampelBlock.querySelector('.readout');
+    if(ro) ro.style.display = '';
+    // Put back into floating (safe default)
+    floatingHost.classList.add('show');
+    floatingBody.appendChild(ampelBlock);
+  }
+
+  btnPip.addEventListener('click', () => {
+    if(pipWin) closePip();
+    else openPip();
+  });
+
+  // --- Slider events
+  thrYellow.addEventListener('input', () => {
+    if(Number(thrRed.value) <= Number(thrYellow.value)) thrRed.value = String(Number(thrYellow.value) + 1);
+    syncUI();
+  });
+  thrRed.addEventListener('input', () => {
+    if(Number(thrRed.value) <= Number(thrYellow.value)) thrYellow.value = String(Number(thrRed.value) - 1);
+    syncUI();
+  });
+  smooth.addEventListener('input', syncUI);
+  offset.addEventListener('input', syncUI);
+
+  // --- Buttons
+  btnStart.addEventListener('click', start);
+  btnStop.addEventListener('click', stop);
+  btnCal.addEventListener('click', calibrate);
+
+  btnSave.addEventListener('click', () => { storeSettings(); alert("Einstellungen gespeichert."); });
+  btnLoad.addEventListener('click', () => { loadSettings(); alert("Einstellungen geladen."); });
+  btnReset.addEventListener('click', () => { resetSettings(); alert("Zurückgesetzt."); });
+
+  // init
+  loadSettings();
+  syncUI();
+  setLights("green");
+  setLive(false);
+
+  // Improve UX: show hint about PiP availability
+  if(!pipSupported){
+    btnPip.title = "Mini-Fenster wird in diesem Browser nicht unterstützt. Nutze „Ampel lösen“.";
+  }
+})();
+</script>
+</body>
+</html>
